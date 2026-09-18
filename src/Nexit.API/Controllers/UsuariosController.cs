@@ -45,11 +45,11 @@ public class UsuariosController(
     public async Task<ActionResult<IReadOnlyList<UsuarioResponseDto>>> GetAll(CancellationToken ct) => Ok(await consultar.ListAsync(ct));
 
     /// <summary>
-    /// Quiénes se pueden agregar al equipo de un proyecto -- solo activos con rol miembro o manager
-    /// (Director), nunca admin ni super_admin (Alicia 2026-09-09). A diferencia de <see cref="GetAll"/>,
-    /// CUALQUIER autenticado con perfil puede pedir esto: crear o editar un proyecto no es exclusivo de
-    /// admin+ (<see cref="Nexit.API.Controllers.ProyectosController"/> no restringe por rol), así que
-    /// buscar a quién agregar al equipo tampoco puede estarlo. Antes de "{id:guid}" a propósito.
+    /// Quiénes se pueden agregar al equipo de un proyecto -- cualquier usuario activo, sin importar
+    /// el rol (Alicia 2026-09-18). A diferencia de <see cref="GetAll"/>, CUALQUIER autenticado con
+    /// perfil puede pedir esto: crear o editar un proyecto no es exclusivo de admin+ (<see
+    /// cref="Nexit.API.Controllers.ProyectosController"/> no restringe por rol), así que buscar a
+    /// quién agregar al equipo tampoco puede estarlo. Antes de "{id:guid}" a propósito.
     /// </summary>
     [HttpGet("equipo")]
     public async Task<ActionResult<IReadOnlyList<UsuarioEquipoDto>>> GetEquipo(CancellationToken ct) => Ok(await consultarEquipo.ListAsync(ct));

@@ -25,6 +25,7 @@ public static class DependencyInjection
         services.AddScoped<IConsultarClientesUseCase, ConsultarClientesUseCase>();
         services.AddScoped<IEliminarClienteUseCase, EliminarClienteUseCase>();
         services.AddScoped<IConsultarPrioridadClientesUseCase, ConsultarPrioridadClientesUseCase>();
+        services.AddScoped<IClienteAdjuntosUseCase, ClienteAdjuntosUseCase>();
         services.AddScoped<ICatalogosService, CatalogosService>();
         services.AddScoped<ICrearProveedorUseCase, CrearProveedorUseCase>();
         services.AddScoped<IActualizarProveedorUseCase, ActualizarProveedorUseCase>();
@@ -39,6 +40,7 @@ public static class DependencyInjection
         services.AddScoped<IAgregarSeguimientoProyectoUseCase, AgregarSeguimientoProyectoUseCase>();
         services.AddScoped<IConsultarSeguimientoProyectoUseCase, ConsultarSeguimientoProyectoUseCase>();
         services.AddScoped<IConsultarPrioridadProyectosUseCase, ConsultarPrioridadProyectosUseCase>();
+        services.AddScoped<IProyectoAdjuntosUseCase, ProyectoAdjuntosUseCase>();
         services.AddScoped<IConsultarInformesUseCase, ConsultarInformesUseCase>();
         services.AddScoped<IGenerarInformeSnapshotUseCase, GenerarInformeSnapshotUseCase>();
         services.AddScoped<ICrearUsuarioUseCase, CrearUsuarioUseCase>();
@@ -55,6 +57,7 @@ public static class DependencyInjection
         services.AddScoped<IConsultarSolicitudesEliminacionUseCase, ConsultarSolicitudesEliminacionUseCase>();
         services.AddScoped<IListarMisNotificacionesUseCase, ListarMisNotificacionesUseCase>();
         services.AddScoped<IMarcarNotificacionLeidaUseCase, MarcarNotificacionLeidaUseCase>();
+        services.AddScoped<IDescartarNotificacionUseCase, DescartarNotificacionUseCase>();
         services.AddScoped<IConsultarHistorialCambiosUseCase, ConsultarHistorialCambiosUseCase>();
         services.AddScoped<IMarcarColaboradorProveedorUseCase, MarcarColaboradorProveedorUseCase>();
         services.AddScoped<IQuitarColaboradorProveedorUseCase, QuitarColaboradorProveedorUseCase>();

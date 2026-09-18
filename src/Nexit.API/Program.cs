@@ -87,11 +87,11 @@ try
     if (allowedOrigins.Length == 0 && !builder.Environment.IsDevelopment()) throw new InvalidOperationException("Configure Cors:AllowedOrigins for production.");
     builder.Services.AddCors(options => options.AddDefaultPolicy(policy => policy.WithOrigins(allowedOrigins.Length > 0 ? allowedOrigins : ["http://localhost:3000", "http://localhost:5173"]).AllowAnyHeader().AllowAnyMethod()));
 
-    // Cabeceras reenviadas por el proxy inverso del proveedor de despliegue (Railway/Render/Azure/Fly.io, aún sin
-    // elegir). Sin esto, el rate limiting y cualquier log de IP verían solo la IP interna del proxy. Se deja sin
-    // proxies/redes de confianza por defecto (no reenvía nada) hasta que se elija el proveedor y se complete
-    // ForwardedHeaders:KnownProxies / ForwardedHeaders:KnownNetworks en appsettings.Production.json — confiar en
-    // encabezados reenviados sin saber quién los manda permitiría falsificar la IP de origen.
+    // Cabeceras reenviadas por el proxy inverso del proveedor de despliegue (Railway, decidido 2026-09-10). Sin
+    // esto, el rate limiting y cualquier log de IP verían solo la IP interna del proxy. ForwardedHeaders:KnownNetworks
+    // ya queda en 100.0.0.0/8 en appsettings.Production.json (rango interno del edge de Railway para
+    // X-Forwarded-For, confirmado en station.railway.com) — confiar en encabezados reenviados sin saber quién los
+    // manda permitiría falsificar la IP de origen, por eso no se deja abierto a cualquier proxy.
     var forwardedHeadersOptions = new ForwardedHeadersOptions { ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto };
     foreach (var proxy in builder.Configuration.GetSection("ForwardedHeaders:KnownProxies").Get<string[]>() ?? [])
         if (System.Net.IPAddress.TryParse(proxy, out var proxyIp)) forwardedHeadersOptions.KnownProxies.Add(proxyIp);

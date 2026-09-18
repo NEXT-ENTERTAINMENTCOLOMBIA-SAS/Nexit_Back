@@ -42,6 +42,13 @@ public class CatalogosController(ICatalogosService catalogos) : BaseController
     [HttpPut("servicios/{id:guid}"), Authorize(Policy = "AdminOrAbove")]
     public Task<ItemCatalogoDto> ActualizarServicio(Guid id, NombreDto dto, CancellationToken ct) => catalogos.ActualizarServicioAsync(id, dto, ct);
 
+    [HttpGet("estados-proveedor")]
+    public Task<IReadOnlyList<ItemCatalogoDto>> GetEstadosProveedor(CancellationToken ct) => catalogos.GetEstadosProveedorAsync(ct);
+    [HttpPost("estados-proveedor"), Authorize(Policy = "AdminOrAbove")]
+    public Task<ItemCatalogoDto> CrearEstadoProveedor(NombreDto dto, CancellationToken ct) => catalogos.CrearEstadoProveedorAsync(dto, ct);
+    [HttpPut("estados-proveedor/{id:guid}"), Authorize(Policy = "AdminOrAbove")]
+    public Task<ItemCatalogoDto> ActualizarEstadoProveedor(Guid id, NombreDto dto, CancellationToken ct) => catalogos.ActualizarEstadoProveedorAsync(id, dto, ct);
+
     [HttpGet("fases-proyecto")]
     public Task<IReadOnlyList<FaseProyectoDto>> GetFases(CancellationToken ct) => catalogos.GetFasesAsync(ct);
     [HttpPut("fases-proyecto/{fase:int}"), Authorize(Policy = "AdminOrAbove")]

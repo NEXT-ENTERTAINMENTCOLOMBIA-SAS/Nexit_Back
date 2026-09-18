@@ -47,6 +47,9 @@ public class CatalogosService(ICatalogosRepository repository, IUnitOfWork unitO
     public async Task<IReadOnlyList<ItemCatalogoDto>> GetServiciosAsync(CancellationToken ct = default) => (await repository.GetServiciosAsync(ct)).Select(x => new ItemCatalogoDto(x.Id, x.Nombre)).ToList();
     public Task<ItemCatalogoDto> CrearServicioAsync(NombreDto input, CancellationToken ct = default) => CrearItem(input, ct, nombre => new Servicio { Nombre = nombre }, x => new ItemCatalogoDto(x.Id, x.Nombre));
     public Task<ItemCatalogoDto> ActualizarServicioAsync(Guid id, NombreDto input, CancellationToken ct = default) => ActualizarItem(id, input, ct, repository.GetServicioAsync, x => x.Nombre, (x, nombre) => x.Nombre = nombre, x => new ItemCatalogoDto(x.Id, x.Nombre));
+    public async Task<IReadOnlyList<ItemCatalogoDto>> GetEstadosProveedorAsync(CancellationToken ct = default) => (await repository.GetEstadosProveedorAsync(ct)).Select(x => new ItemCatalogoDto(x.Id, x.Nombre)).ToList();
+    public Task<ItemCatalogoDto> CrearEstadoProveedorAsync(NombreDto input, CancellationToken ct = default) => CrearItem(input, ct, nombre => new EstadoProveedor { Nombre = nombre }, x => new ItemCatalogoDto(x.Id, x.Nombre));
+    public Task<ItemCatalogoDto> ActualizarEstadoProveedorAsync(Guid id, NombreDto input, CancellationToken ct = default) => ActualizarItem(id, input, ct, repository.GetEstadoProveedorAsync, x => x.Nombre, (x, nombre) => x.Nombre = nombre, x => new ItemCatalogoDto(x.Id, x.Nombre));
     public async Task<IReadOnlyList<FaseProyectoDto>> GetFasesAsync(CancellationToken ct = default) => (await repository.GetFasesAsync(ct)).Select(x => new FaseProyectoDto(x.Fase, x.Nombre)).ToList();
     public async Task<FaseProyectoDto> ActualizarFaseAsync(short fase, NombreDto input, CancellationToken ct = default)
     {
@@ -89,6 +92,7 @@ public class CatalogosService(ICatalogosRepository repository, IUnitOfWork unitO
             // nombres largos en todos lados; DELETE quedaba inalcanzable para esos dos tipos).
             case "categorias-proveedor": await Eliminar(await repository.GetCategoriaAsync(id, ct), id, ct); break;
             case "servicios": await Eliminar(await repository.GetServicioAsync(id, ct), id, ct); break;
+            case "estados-proveedor": await Eliminar(await repository.GetEstadoProveedorAsync(id, ct), id, ct); break;
             case "estados-proyecto": await Eliminar(await repository.GetEstadoAsync(id, ct), id, ct); break;
             case "etapas-cliente": await Eliminar(await repository.GetEtapaClienteAsync(id, ct), id, ct); break;
             default: throw new BusinessRuleException("Tipo de catálogo no válido.");

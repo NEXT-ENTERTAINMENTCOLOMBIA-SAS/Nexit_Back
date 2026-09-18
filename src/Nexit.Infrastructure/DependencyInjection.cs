@@ -20,9 +20,11 @@ public static class DependencyInjection
         services.AddDbContext<NexitDbContext>(options => options.UseNpgsql(connectionString, npgsql => npgsql.MigrationsAssembly(typeof(NexitDbContext).Assembly.FullName)).UseSnakeCaseNamingConvention());
         services.AddScoped<IUnitOfWork, UnitOfWork.UnitOfWork>();
         services.AddScoped<IClienteRepository, ClienteRepository>();
+        services.AddScoped<IClienteAdjuntoRepository, ClienteAdjuntoRepository>();
         services.AddScoped<IProveedorRepository, ProveedorRepository>();
         services.AddScoped<IProveedorAdjuntoRepository, ProveedorAdjuntoRepository>();
         services.AddScoped<IProyectoRepository, ProyectoRepository>();
+        services.AddScoped<IProyectoAdjuntoRepository, ProyectoAdjuntoRepository>();
         services.AddScoped<IInformesRepository, InformesRepository>();
         services.AddScoped<ICatalogosRepository, CatalogosRepository>();
         services.AddScoped<IUsuarioRepository, UsuarioRepository>();

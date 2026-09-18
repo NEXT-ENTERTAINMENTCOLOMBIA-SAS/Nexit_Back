@@ -58,10 +58,11 @@ public class ProyectosController(ICrearProyectoUseCase crear, IActualizarProyect
         return Ok(await actualizar.ExecuteAsync(dto, userId, GetUserRole(), ct));
     }
 
-    // Director (manager) también elimina directo, sin pasar por SolicitudesEliminacionController
-    // (Alicia 2026-09-09) -- ver DirectorOrAbove en Program.cs. El administrador recibe una
-    // notificación cuando quien elimina es un director (ver EliminarProyectoUseCase).
-    [HttpDelete("{id:guid}"), Authorize(Policy = "DirectorOrAbove")]
+    // Solo el super_admin elimina directo, sin pasar por SolicitudesEliminacionController (Alicia
+    // 2026-09-18, corrige la decisión anterior del 2026-09-09 que dejaba entrar aquí también a
+    // director/admin). Cualquier otro rol -- admin incluido -- tiene que pedirlo y esperar que un
+    // administrador o el super_admin lo apruebe (ver SolicitudesEliminacionController).
+    [HttpDelete("{id:guid}"), Authorize(Policy = "SuperAdminOnly")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken ct) { await eliminar.ExecuteAsync(id, GetUserId(), GetUserRole(), ct); return NoContent(); }
 
     [HttpPost("{id:guid}/seguimiento")]

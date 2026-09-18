@@ -21,6 +21,22 @@ public class MarcarNotificacionLeidaUseCase(INotificacionRepository repository, 
     }
 }
 
+/// <summary>
+/// Descartar (el ícono de X del panel, Alicia 2026-09-18) borra la notificación de verdad -- a
+/// diferencia de marcar-leida, que la conserva como historial. Solo quita esta de la bandeja de
+/// quien la descarta; no toca la solicitud/entidad que la originó ni la bandeja de nadie más.
+/// </summary>
+public class DescartarNotificacionUseCase(INotificacionRepository repository, IUnitOfWork unitOfWork) : IDescartarNotificacionUseCase
+{
+    public async Task ExecuteAsync(Guid notificacionId, Guid usuarioId, CancellationToken cancellationToken = default)
+    {
+        var notificacion = await repository.GetByIdAsync(notificacionId, cancellationToken) ?? throw new EntityNotFoundException("Notificacion", notificacionId);
+        if (notificacion.UsuarioDestinatarioId != usuarioId) throw new ForbiddenOperationException("Esta notificación no es tuya.");
+        await repository.DeleteAsync(notificacionId, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+    }
+}
+
 internal static class NotificacionMapper
 {
     public static NotificacionResponseDto ToResponse(Notificacion n) => new()

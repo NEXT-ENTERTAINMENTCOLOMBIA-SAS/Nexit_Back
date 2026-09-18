@@ -14,6 +14,8 @@ public interface ICatalogosRepository
     Task<CategoriaProveedor?> GetCategoriaAsync(Guid id, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Servicio>> GetServiciosAsync(CancellationToken cancellationToken = default);
     Task<Servicio?> GetServicioAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<EstadoProveedor>> GetEstadosProveedorAsync(CancellationToken cancellationToken = default);
+    Task<EstadoProveedor?> GetEstadoProveedorAsync(Guid id, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<FaseProyecto>> GetFasesAsync(CancellationToken cancellationToken = default);
     Task<FaseProyecto?> GetFaseAsync(short fase, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<EstadoProyecto>> GetEstadosAsync(short? fase, CancellationToken cancellationToken = default);

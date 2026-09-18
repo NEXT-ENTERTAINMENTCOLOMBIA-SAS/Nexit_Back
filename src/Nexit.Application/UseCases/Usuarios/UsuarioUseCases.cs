@@ -113,17 +113,17 @@ public class ConsultarUsuariosUseCase(IUsuarioRepository repository) : IConsulta
 }
 
 /// <summary>
-/// Solo activos con rol miembro o manager (Director) -- ni admin ni super_admin, Alicia 2026-09-09:
-/// "el administrador como tal no participa en esto". Abierto a cualquier autenticado con perfil (ver
+/// Cualquier usuario activo puede ser miembro (o líder) de un equipo de proyecto, sin importar su
+/// rol (Alicia 2026-09-18, corrige la restricción del 2026-09-09 a solo miembro/manager): con un
+/// equipo real donde todos terminaron siendo admin/super_admin, esa restricción dejaba el selector
+/// vacío -- nadie con quien armar un proyecto. Sigue abierto a cualquier autenticado con perfil (ver
 /// la política del endpoint) porque armar el equipo de un proyecto no es exclusivo de admin+.
 /// </summary>
 public class ConsultarUsuariosEquipoUseCase(IUsuarioRepository repository) : IConsultarUsuariosEquipoUseCase
 {
-    private static readonly string[] RolesEquipo = [Roles.Miembro, Roles.Manager];
-
     public async Task<IReadOnlyList<UsuarioEquipoDto>> ListAsync(CancellationToken cancellationToken = default) =>
         (await repository.GetAllAsync(cancellationToken))
-            .Where(u => u.Activo && RolesEquipo.Contains(u.Rol))
+            .Where(u => u.Activo)
             .OrderBy(u => u.Nombre).ThenBy(u => u.Apellido)
             .Select(u => new UsuarioEquipoDto { Id = u.Id, Nombre = u.Nombre, Apellido = u.Apellido, Rol = u.Rol })
             .ToList();

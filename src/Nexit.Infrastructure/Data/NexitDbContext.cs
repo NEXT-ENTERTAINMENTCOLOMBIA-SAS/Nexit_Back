@@ -10,12 +10,14 @@ public class NexitDbContext(DbContextOptions<NexitDbContext> options) : DbContex
     public DbSet<Region> Regiones => Set<Region>();
     public DbSet<Ciudad> Ciudades => Set<Ciudad>();
     public DbSet<CategoriaProveedor> CategoriasProveedor => Set<CategoriaProveedor>();
+    public DbSet<EstadoProveedor> EstadosProveedor => Set<EstadoProveedor>();
     public DbSet<FaseProyecto> FasesProyecto => Set<FaseProyecto>();
     public DbSet<EstadoProyecto> EstadosProyecto => Set<EstadoProyecto>();
     public DbSet<EtapaCliente> EtapasCliente => Set<EtapaCliente>();
     public DbSet<Cliente> Clientes => Set<Cliente>();
     public DbSet<ClienteTelefono> ClienteTelefonos => Set<ClienteTelefono>();
     public DbSet<ClienteEmail> ClienteEmails => Set<ClienteEmail>();
+    public DbSet<ClienteAdjunto> ClienteAdjuntos => Set<ClienteAdjunto>();
     public DbSet<Proveedor> Proveedores => Set<Proveedor>();
     public DbSet<ProveedorTelefono> ProveedorTelefonos => Set<ProveedorTelefono>();
     public DbSet<ProveedorEmail> ProveedorEmails => Set<ProveedorEmail>();
@@ -27,6 +29,7 @@ public class NexitDbContext(DbContextOptions<NexitDbContext> options) : DbContex
     public DbSet<ProyectoEquipo> ProyectoEquipo => Set<ProyectoEquipo>();
     public DbSet<ProyectoProveedor> ProyectoProveedores => Set<ProyectoProveedor>();
     public DbSet<ProyectoSeguimiento> ProyectoSeguimientos => Set<ProyectoSeguimiento>();
+    public DbSet<ProyectoAdjunto> ProyectoAdjuntos => Set<ProyectoAdjunto>();
     public DbSet<InformeSnapshot> InformesSnapshot => Set<InformeSnapshot>();
     public DbSet<SolicitudEliminacion> SolicitudesEliminacion => Set<SolicitudEliminacion>();
     public DbSet<UsuarioEliminado> UsuariosEliminados => Set<UsuarioEliminado>();
@@ -75,6 +78,8 @@ public class NexitDbContext(DbContextOptions<NexitDbContext> options) : DbContex
         });
         modelBuilder.Entity<Ciudad>(entity => { entity.ToTable("ciudades"); entity.HasKey(x => x.Id); entity.Property(x => x.Id).HasDefaultValueSql("gen_random_uuid()"); entity.HasIndex(x => new { x.RegionId, x.Nombre }).IsUnique(); entity.Property(x => x.Nombre).HasMaxLength(255).IsRequired(); });
         modelBuilder.Entity<CategoriaProveedor>(entity => { entity.ToTable("categorias_proveedor"); entity.HasKey(x => x.Id); entity.Property(x => x.Id).HasDefaultValueSql("gen_random_uuid()"); entity.HasIndex(x => x.Nombre).IsUnique(); entity.Property(x => x.Nombre).HasMaxLength(255).IsRequired(); });
+        // Catálogo editable de "Estados de gestión de proveedores" (2026-09-10, a pedido de Alicia) -- ver EstadoProveedor.cs.
+        modelBuilder.Entity<EstadoProveedor>(entity => { entity.ToTable("estados_proveedor"); entity.HasKey(x => x.Id); entity.Property(x => x.Id).HasDefaultValueSql("gen_random_uuid()"); entity.HasIndex(x => x.Nombre).IsUnique(); entity.Property(x => x.Nombre).HasMaxLength(255).IsRequired(); });
         modelBuilder.Entity<FaseProyecto>(entity =>
         {
             entity.ToTable("fases_proyecto"); entity.HasKey(x => x.Fase); entity.HasIndex(x => x.Nombre).IsUnique(); entity.Property(x => x.Fase).HasColumnName("fase").ValueGeneratedNever(); entity.Property(x => x.Nombre).HasMaxLength(255).IsRequired();
@@ -138,7 +143,6 @@ public class NexitDbContext(DbContextOptions<NexitDbContext> options) : DbContex
             entity.ToTable("proveedores", t =>
             {
                 t.HasCheckConstraint("ck_proveedores_score", "score IS NULL OR score BETWEEN 1 AND 5");
-                t.HasCheckConstraint("ck_proveedores_estado", "estado IN ('Activo', 'En evaluación', 'Pausado', 'Bloqueado')");
                 t.HasCheckConstraint("ck_proveedores_presupuesto", "presupuesto IS NULL OR presupuesto IN ('$ Bajo (<20k)', '$$ Medio (20k–100k)', '$$$ Alto (100k–500k)', '$$$$ Premium (>500k)')");
                 t.HasCheckConstraint("ck_proveedores_cobertura", "cobertura IS NULL OR cobertura IN ('Solo ciudad', 'Regional', 'Nacional', 'Internacional')");
             });
@@ -166,6 +170,8 @@ public class NexitDbContext(DbContextOptions<NexitDbContext> options) : DbContex
         // corrige de paso para no ampliar el alcance de este cambio).
         modelBuilder.Entity<ProveedorEmail>(entity => { entity.ToTable("proveedor_emails"); entity.HasKey(x => x.Id); entity.Property(x => x.Id).HasDefaultValueSql("gen_random_uuid()"); entity.Ignore(x => x.CreatedAt); entity.Ignore(x => x.UpdatedAt); entity.Ignore(x => x.CreatedBy); entity.Ignore(x => x.UpdatedBy); entity.Property(x => x.Email).HasMaxLength(255).IsRequired(); });
         modelBuilder.Entity<ProveedorAdjunto>(entity => { entity.ToTable("proveedor_adjuntos", t => t.HasCheckConstraint("ck_proveedor_adjuntos_tipo", "tipo IN ('link', 'file')")); entity.HasKey(x => x.Id); entity.Property(x => x.Id).HasDefaultValueSql("gen_random_uuid()"); entity.Property(x => x.Tipo).HasMaxLength(10).IsRequired(); entity.Property(x => x.Nombre).HasMaxLength(255).IsRequired(); entity.Property(x => x.ContentType).HasMaxLength(255); entity.Property(x => x.Fecha).HasDefaultValueSql("CURRENT_DATE"); entity.Property(x => x.CreatedAt).HasDefaultValueSql("now()"); });
+modelBuilder.Entity<ClienteAdjunto>(entity => { entity.ToTable("cliente_adjuntos", t => t.HasCheckConstraint("ck_cliente_adjuntos_tipo", "tipo IN ('link', 'file')")); entity.HasKey(x => x.Id); entity.Property(x => x.Id).HasDefaultValueSql("gen_random_uuid()"); entity.Property(x => x.Tipo).HasMaxLength(10).IsRequired(); entity.Property(x => x.Nombre).HasMaxLength(255).IsRequired(); entity.Property(x => x.ContentType).HasMaxLength(255); entity.Property(x => x.Fecha).HasDefaultValueSql("CURRENT_DATE"); entity.Property(x => x.CreatedAt).HasDefaultValueSql("now()"); });
+modelBuilder.Entity<ProyectoAdjunto>(entity => { entity.ToTable("proyecto_adjuntos", t => t.HasCheckConstraint("ck_proyecto_adjuntos_tipo", "tipo IN ('link', 'file')")); entity.HasKey(x => x.Id); entity.Property(x => x.Id).HasDefaultValueSql("gen_random_uuid()"); entity.Property(x => x.Tipo).HasMaxLength(10).IsRequired(); entity.Property(x => x.Nombre).HasMaxLength(255).IsRequired(); entity.Property(x => x.ContentType).HasMaxLength(255); entity.Property(x => x.Fecha).HasDefaultValueSql("CURRENT_DATE"); entity.Property(x => x.CreatedAt).HasDefaultValueSql("now()"); });
         modelBuilder.Entity<DominioCorreoPermitido>(entity => { entity.ToTable("dominios_correo_permitidos"); entity.HasKey(x => x.Id); entity.Property(x => x.Id).HasDefaultValueSql("gen_random_uuid()"); entity.HasIndex(x => x.Dominio).IsUnique(); entity.Property(x => x.Dominio).HasMaxLength(255).IsRequired(); });
         modelBuilder.Entity<Servicio>(entity => { entity.ToTable("servicios"); entity.HasKey(x => x.Id); entity.Property(x => x.Id).HasDefaultValueSql("gen_random_uuid()"); entity.HasIndex(x => x.Nombre).IsUnique(); entity.Ignore(x => x.UpdatedBy); });
         modelBuilder.Entity<ProveedorServicio>(entity =>

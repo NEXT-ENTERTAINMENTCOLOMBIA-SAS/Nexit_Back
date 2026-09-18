@@ -17,6 +17,8 @@ public class CatalogosRepository(NexitDbContext context) : ICatalogosRepository
     public Task<CategoriaProveedor?> GetCategoriaAsync(Guid id, CancellationToken cancellationToken = default) => context.CategoriasProveedor.FindAsync([id], cancellationToken).AsTask();
     public async Task<IReadOnlyList<Servicio>> GetServiciosAsync(CancellationToken cancellationToken = default) => await context.Servicios.AsNoTracking().OrderBy(x => x.Nombre).ToListAsync(cancellationToken);
     public Task<Servicio?> GetServicioAsync(Guid id, CancellationToken cancellationToken = default) => context.Servicios.FindAsync([id], cancellationToken).AsTask();
+    public async Task<IReadOnlyList<EstadoProveedor>> GetEstadosProveedorAsync(CancellationToken cancellationToken = default) => await context.EstadosProveedor.AsNoTracking().OrderBy(x => x.Nombre).ToListAsync(cancellationToken);
+    public Task<EstadoProveedor?> GetEstadoProveedorAsync(Guid id, CancellationToken cancellationToken = default) => context.EstadosProveedor.FindAsync([id], cancellationToken).AsTask();
     public async Task<IReadOnlyList<FaseProyecto>> GetFasesAsync(CancellationToken cancellationToken = default) => await context.FasesProyecto.AsNoTracking().OrderBy(x => x.Fase).ToListAsync(cancellationToken);
     public Task<FaseProyecto?> GetFaseAsync(short fase, CancellationToken cancellationToken = default) => context.FasesProyecto.FindAsync([fase], cancellationToken).AsTask();
     public async Task<IReadOnlyList<EstadoProyecto>> GetEstadosAsync(short? fase, CancellationToken cancellationToken = default)

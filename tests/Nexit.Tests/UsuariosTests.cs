@@ -180,13 +180,15 @@ public class UsuariosTests
         Assert.Equal("Ana", result[0].Nombre);
     }
 
-    // -- Endpoint /api/usuarios/equipo (2026-09-09): a diferencia de ConsultarUsuarios (sólo
-    // AdminOrAbove), este lo puede llamar cualquier usuario autenticado -- lo necesita el
-    // buscador de "miembros del equipo" al armar un proyecto, y esa pantalla no está restringida
-    // a administradores. Por eso el DTO es deliberadamente liviano (sin email ni Activo) y el
-    // filtro deja afuera admin/super_admin e inactivos.
+    // -- Endpoint /api/usuarios/equipo: a diferencia de ConsultarUsuarios (sólo AdminOrAbove), este
+    // lo puede llamar cualquier usuario autenticado -- lo necesita el buscador de "miembros del
+    // equipo" al armar un proyecto, y esa pantalla no está restringida a administradores. Por eso el
+    // DTO es deliberadamente liviano (sin email ni Activo). Hasta el 2026-09-09 excluía admin/
+    // super_admin, pero con un equipo real donde todos terminaron siendo admin/super_admin eso
+    // dejaba el selector vacío, así que desde el 2026-09-18 cualquier rol cuenta -- solo se filtra
+    // por inactivo.
     [Fact]
-    public async Task ConsultarUsuariosEquipo_returns_only_active_miembro_and_manager_users_ordered_by_name()
+    public async Task ConsultarUsuariosEquipo_returns_only_active_users_of_any_role_ordered_by_name()
     {
         var repository = new Mock<IUsuarioRepository>();
         repository.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync([
@@ -199,9 +201,11 @@ public class UsuariosTests
 
         var result = await new ConsultarUsuariosEquipoUseCase(repository.Object).ListAsync();
 
-        Assert.Equal(2, result.Count);
+        Assert.Equal(4, result.Count);
         Assert.Equal("Ana", result[0].Nombre);
-        Assert.Equal("Zoe", result[1].Nombre);
+        Assert.Equal("Beto", result[1].Nombre);
+        Assert.Equal("Cami", result[2].Nombre);
+        Assert.Equal("Zoe", result[3].Nombre);
     }
 
     // --- Alta manual, sin correo de invitación de por medio (2026-09-08, docs/38).

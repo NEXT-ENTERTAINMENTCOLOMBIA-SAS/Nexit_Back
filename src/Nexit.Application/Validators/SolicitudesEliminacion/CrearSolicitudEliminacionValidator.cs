@@ -12,6 +12,10 @@ public class CrearSolicitudEliminacionValidator : AbstractValidator<CrearSolicit
     {
         RuleFor(x => x.TipoEntidad).Must(tipo => TiposEntidadEliminable.Todos.Contains(tipo))
             .WithMessage("tipoEntidad debe ser 'cliente', 'proveedor', 'proyecto' o 'usuario'.");
+        // El motivo es obligatorio para cualquiera que pase por acá (Alicia 2026-09-18): quien puede
+        // eliminar directo -- solo super_admin, ver SuperAdminOnly en los controllers -- no pasa por
+        // este validador en absoluto, así que todo el que sí llega aquí tiene que explicar por qué.
+        RuleFor(x => x.Motivo).NotEmpty().WithMessage("Tienes que indicar el motivo de la eliminación.");
         RuleFor(x => x.EntidadId).MustAsync(async (dto, entidadId, token) => dto.TipoEntidad switch
         {
             TiposEntidadEliminable.Cliente => await clientes.GetByIdAsync(entidadId, token) is not null,

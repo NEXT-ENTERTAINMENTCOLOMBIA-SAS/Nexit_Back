@@ -50,23 +50,33 @@ public class AuthorizationIntegrationTests(NexitApiFactory factory) : IClassFixt
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
-    // Director (manager) elimina directo desde 2026-09-09 (Alicia: "los directores sí podrían
-    // borrar proyectos... claramente se recibe la notificación al administrador") -- ya no pasa
-    // por SolicitudesEliminacionController como miembro. Ver DirectorOrAbove en Program.cs.
+    // Manager/admin/director elimina directo desde 2026-09-09 hasta 2026-09-18, cuando Alicia corrigió
+    // la decisión: solo super_admin elimina directo, todos los demás -- admin incluido -- tienen que
+    // pasar por SolicitudesEliminacionController con motivo. Ver SuperAdminOnly en Program.cs.
     [Theory]
     [InlineData("manager")]
     [InlineData("admin")]
-    [InlineData("super_admin")]
-    public async Task DeleteCliente_with_director_or_above_role_passes_authorization(string role)
+    public async Task DeleteCliente_with_a_role_below_super_admin_returns_403(string role)
     {
         _client.DefaultRequestHeaders.Remove(TestAuthHandler.TestAuthHeader);
         _client.DefaultRequestHeaders.Add(TestAuthHandler.TestAuthHeader, role);
 
         var response = await _client.DeleteAsync($"/api/clientes/{Guid.NewGuid()}");
 
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task DeleteCliente_with_super_admin_role_passes_authorization()
+    {
+        _client.DefaultRequestHeaders.Remove(TestAuthHandler.TestAuthHeader);
+        _client.DefaultRequestHeaders.Add(TestAuthHandler.TestAuthHeader, "super_admin");
+
+        var response = await _client.DeleteAsync($"/api/clientes/{Guid.NewGuid()}");
+
         // No hay base de datos real en el entorno de pruebas, así que la petición puede fallar más
         // adelante en el pipeline (p. ej. 500 al no poder conectar a Postgres) — lo que importa aquí
-        // es que la autorización ya no la bloquea (nunca 401/403), a diferencia de "miembro".
+        // es que la autorización ya no la bloquea (nunca 401/403).
         Assert.NotEqual(HttpStatusCode.Unauthorized, response.StatusCode);
         Assert.NotEqual(HttpStatusCode.Forbidden, response.StatusCode);
     }

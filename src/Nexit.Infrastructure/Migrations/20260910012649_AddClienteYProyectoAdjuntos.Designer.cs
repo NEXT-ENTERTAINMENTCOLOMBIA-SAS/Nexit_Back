@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Nexit.Infrastructure.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Nexit.Infrastructure.Migrations
 {
     [DbContext(typeof(NexitDbContext))]
-    partial class NexitDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260910012649_AddClienteYProyectoAdjuntos")]
+    partial class AddClienteYProyectoAdjuntos
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -355,30 +358,6 @@ namespace Nexit.Infrastructure.Migrations
                         .HasDatabaseName("ix_dominios_correo_permitidos_dominio");
 
                     b.ToTable("dominios_correo_permitidos", (string)null);
-                });
-
-            modelBuilder.Entity("Nexit.Core.Entities.EstadoProveedor", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id")
-                        .HasDefaultValueSql("gen_random_uuid()");
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("nombre");
-
-                    b.HasKey("Id")
-                        .HasName("pk_estados_proveedor");
-
-                    b.HasIndex("Nombre")
-                        .IsUnique()
-                        .HasDatabaseName("ix_estados_proveedor_nombre");
-
-                    b.ToTable("estados_proveedor", (string)null);
                 });
 
             modelBuilder.Entity("Nexit.Core.Entities.EstadoProyecto", b =>
@@ -910,6 +889,8 @@ namespace Nexit.Infrastructure.Migrations
                     b.ToTable("proveedores", null, t =>
                         {
                             t.HasCheckConstraint("ck_proveedores_cobertura", "cobertura IS NULL OR cobertura IN ('Solo ciudad', 'Regional', 'Nacional', 'Internacional')");
+
+                            t.HasCheckConstraint("ck_proveedores_estado", "estado IN ('Activo', 'En evaluación', 'Pausado', 'Bloqueado')");
 
                             t.HasCheckConstraint("ck_proveedores_presupuesto", "presupuesto IS NULL OR presupuesto IN ('$ Bajo (<20k)', '$$ Medio (20k–100k)', '$$$ Alto (100k–500k)', '$$$$ Premium (>500k)')");
 
