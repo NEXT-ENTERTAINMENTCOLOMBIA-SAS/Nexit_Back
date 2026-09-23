@@ -52,9 +52,9 @@ public class EliminarProveedorUseCase(
         if (await repository.GetByIdAsync(id, ct) is null) throw new EntityNotFoundException("Proveedor", id);
         await repository.DeleteAsync(id, ct);
         await HistorialRegistrador.RegistrarEliminacionAsync(historial, "proveedor", id, usuarioId, ct);
-        // Un director elimina directo (DirectorOrAbove, ProveedoresController.Delete) -- a diferencia
-        // de admin/super_admin, al administrador le llega aviso de que pasó (Alicia 2026-09-09).
-        if (rol == Roles.Manager) await EliminarClienteUseCase.NotificarAdministradoresAsync(usuarios, notificaciones, usuarioId, "proveedor", id, ct);
+        // Eliminar aca es SuperAdminOnly (Alicia 2026-09-18, corrigio la decision anterior:
+        // antes tambien podian manager/admin/director) -- ya no hace falta notificar a nadie
+        // aparte, porque solo hay un rol que puede llegar a este punto.
         await unitOfWork.SaveChangesAsync(ct);
     }
 }

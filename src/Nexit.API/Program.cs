@@ -75,13 +75,10 @@ try
         options.AddPolicy("SuperAdminOnly", policy => policy.RequireAuthenticatedUser().RequireAssertion(context => IsActive(context.User) && HasRole(context.User, "super_admin")));
         options.AddPolicy("AdminOrAbove", policy => policy.RequireAuthenticatedUser().RequireAssertion(context =>
             IsActive(context.User) && (HasRole(context.User, "admin") || HasRole(context.User, "super_admin"))));
-        // Director (manager) también puede eliminar clientes/proveedores/proyectos directamente
-        // (Alicia 2026-09-09) -- a diferencia de miembro, que sigue teniendo que pasar por
-        // SolicitudesEliminacionController. Ver ClientesController/ProveedoresController/
-        // ProyectosController.Delete: el administrador recibe una notificación cuando un director
-        // usa este poder (ver NotificacionFactory.EliminacionDirectaDirector).
-        options.AddPolicy("DirectorOrAbove", policy => policy.RequireAuthenticatedUser().RequireAssertion(context =>
-            IsActive(context.User) && (HasRole(context.User, "manager") || HasRole(context.User, "admin") || HasRole(context.User, "super_admin"))));
+        // "DirectorOrAbove" existio hasta 2026-09-18 para que un director (manager) eliminara
+        // clientes/proveedores/proyectos directo -- Alicia corrigio esa decision (ahora Delete es
+        // SuperAdminOnly en los tres controladores, un director pasa por SolicitudesEliminacionController
+        // como cualquier miembro). Se quita la politica porque ya no la usa ningun controlador.
     });
     var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
     if (allowedOrigins.Length == 0 && !builder.Environment.IsDevelopment()) throw new InvalidOperationException("Configure Cors:AllowedOrigins for production.");
