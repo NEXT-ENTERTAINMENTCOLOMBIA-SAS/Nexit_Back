@@ -128,23 +128,20 @@ public class UsuariosFunctionalTests(NexitFunctionalApiFactory factory) : Functi
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
-    [Fact]
-    public async Task Un_miembro_no_puede_eliminar_a_otro_usuario()
-    {
-        var client = ClientAs("miembro");
-        var otroId = UsuarioSembradoId("admin");
+    // --- Ya NO existe DELETE /api/usuarios/{id} (2026-09-08, ver el comentario al final de
+    // UsuariosController): eliminar a alguien pasa por SolicitudesEliminacionController. Antes había
+    // acá dos pruebas ("un miembro/administrador no puede eliminar a otro usuario") que esperaban 403
+    // sobre esa ruta -- ahora responde 405 sin importar el rol, así que probar eso ya no dice nada
+    // sobre permisos; se quitaron en vez de dejarlas comprobando un detalle de enrutamiento.
 
-        var response = await client.DeleteAsync($"/api/usuarios/{otroId}");
-
-        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
-    }
-
-    // --- Confirmación explícita 2026-08-26: "ver el directorio completo" NO es lo mismo que
-    // "gestionar usuarios" -- un admin puede listar (arriba) pero, igual que un miembro, sigue sin
-    // poder crear, editar ni eliminar a nadie. Eso sigue siendo exclusivo de super_admin.
+    // --- Actualizado 2026-09-09 (Alicia: "van a haber varias administradoras que necesitan manejar
+    // usuarios ellas mismas, ya no exclusivo de super_admin"): crear/editar pasó de SuperAdminOnly a
+    // AdminOrAbove -- un admin ya puede hacer ambas cosas. Lo único que sigue exclusivo de la super
+    // administradora sembrada en la base es asignarle el rol super_admin a alguien (ver
+    // CrearUsuarioUseCase/ActualizarUsuarioUseCase y Roles.Asignables).
 
     [Fact]
-    public async Task Un_administrador_no_puede_crear_un_usuario()
+    public async Task Un_administrador_puede_crear_un_usuario_con_un_rol_normal()
     {
         var client = ClientAs("admin");
 
@@ -157,11 +154,49 @@ public class UsuariosFunctionalTests(NexitFunctionalApiFactory factory) : Functi
             Rol = "miembro",
         });
 
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Un_administrador_no_puede_crear_un_usuario_con_rol_super_admin()
+    {
+        var client = ClientAs("admin");
+
+        var response = await client.PostAsJsonAsync("/api/usuarios", new CreateUsuarioDto
+        {
+            Id = Guid.NewGuid(),
+            Nombre = "Persona",
+            Apellido = "Nueva",
+            Email = $"{Guid.NewGuid():N}@nexit-test.com",
+            Rol = "super_admin",
+        });
+
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
     [Fact]
-    public async Task Un_administrador_no_puede_editar_el_perfil_de_otra_persona()
+    public async Task Un_administrador_puede_editar_el_perfil_de_otra_persona_con_un_rol_normal()
+    {
+        var client = ClientAs("admin");
+        // Un usuario adicional, NO el "miembro" sembrado compartido con el resto de la clase -- esta
+        // prueba sí persiste el cambio (a diferencia del rechazo de abajo), y mutar el rol del
+        // sembrado dejaría a otras pruebas de este archivo corriendo con datos distintos a los que
+        // esperan.
+        var otroId = await CrearUsuarioAdicionalAsync("miembro");
+
+        var response = await client.PutAsJsonAsync($"/api/usuarios/{otroId}", new UpdateUsuarioDto
+        {
+            Nombre = "Intento",
+            Apellido = "De edición",
+            Rol = "manager",
+            Activo = true,
+        });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Un_administrador_no_puede_asignarle_el_rol_super_admin_a_otra_persona()
     {
         var client = ClientAs("admin");
         var otroId = UsuarioSembradoId("miembro");
@@ -170,20 +205,9 @@ public class UsuariosFunctionalTests(NexitFunctionalApiFactory factory) : Functi
         {
             Nombre = "Intento",
             Apellido = "De edición",
-            Rol = "miembro",
+            Rol = "super_admin",
             Activo = true,
         });
-
-        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
-    }
-
-    [Fact]
-    public async Task Un_administrador_no_puede_eliminar_a_otro_usuario()
-    {
-        var client = ClientAs("admin");
-        var otroId = UsuarioSembradoId("miembro");
-
-        var response = await client.DeleteAsync($"/api/usuarios/{otroId}");
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }

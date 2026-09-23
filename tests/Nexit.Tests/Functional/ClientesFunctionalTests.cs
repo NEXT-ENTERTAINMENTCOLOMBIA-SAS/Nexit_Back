@@ -33,7 +33,11 @@ public class ClientesFunctionalTests(NexitFunctionalApiFactory factory) : Functi
         var actualizado = await (await client.GetAsync($"/api/clientes/{creado.Id}")).Content.ReadFromJsonAsync<ClienteResponseDto>();
         Assert.Equal(nombre + " (actualizado)", actualizado!.Nombre);
 
-        var deleteResponse = await client.DeleteAsync($"/api/clientes/{creado.Id}");
+        // Borrar es SuperAdminOnly desde el 2026-09-18 (Alicia corrigió la decisión: antes también
+        // podían manager/admin/director) -- crear/editar arriba sigue probándose como "admin" porque
+        // esos dos pasos siguen sin restricción de rol (ver ClientesController).
+        var superAdmin = ClientAs("super_admin");
+        var deleteResponse = await superAdmin.DeleteAsync($"/api/clientes/{creado.Id}");
         Assert.Equal(HttpStatusCode.NoContent, deleteResponse.StatusCode);
         var afterDelete = await client.GetAsync($"/api/clientes/{creado.Id}");
         Assert.Equal(HttpStatusCode.NotFound, afterDelete.StatusCode);

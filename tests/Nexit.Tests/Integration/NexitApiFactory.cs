@@ -2,6 +2,9 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Nexit.Core.Interfaces;
+using Nexit.Infrastructure.Data;
+using Nexit.Infrastructure.Repositories;
 
 namespace Nexit.Tests.Integration;
 
@@ -20,6 +23,12 @@ public class NexitApiFactory : WebApplicationFactory<Program>
         {
             services.AddAuthentication(TestAuthHandler.SchemeName)
                 .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(TestAuthHandler.SchemeName, _ => { });
+
+            // 2026-09-21: ver SiemprePerfilActivoUsuarioRepository -- TestAuthHandler no siembra fila
+            // en `usuarios`, así que sin esto PerfilRequeridoFilter rechazaría con 403 todas las
+            // peticiones autenticadas de esta factory (última registración de IUsuarioRepository gana).
+            services.AddScoped<IUsuarioRepository>(sp =>
+                new SiemprePerfilActivoUsuarioRepository(new UsuarioRepository(sp.GetRequiredService<NexitDbContext>())));
         });
     }
 }
