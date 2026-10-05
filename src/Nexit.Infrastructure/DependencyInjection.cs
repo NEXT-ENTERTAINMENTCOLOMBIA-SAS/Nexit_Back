@@ -25,8 +25,9 @@ public static class DependencyInjection
         services.AddScoped<IProveedorAdjuntoRepository, ProveedorAdjuntoRepository>();
         services.AddScoped<IProyectoRepository, ProyectoRepository>();
         services.AddScoped<IProyectoAdjuntoRepository, ProyectoAdjuntoRepository>();
-        services.AddScoped<IInformesRepository, InformesRepository>();
         services.AddScoped<ICatalogosRepository, CatalogosRepository>();
+        services.AddScoped<IConfiguracionRepository, ConfiguracionRepository>();
+        services.AddScoped<IPanelProjectManagersRepository, PanelProjectManagersRepository>();
         services.AddScoped<IUsuarioRepository, UsuarioRepository>();
         services.AddScoped<IUsuarioEliminadoRepository, UsuarioEliminadoRepository>();
         services.AddScoped<IDominioCorreoPermitidoRepository, DominioCorreoPermitidoRepository>();
@@ -35,7 +36,6 @@ public static class DependencyInjection
         services.AddScoped<IHistorialCambioRepository, HistorialCambioRepository>();
         services.AddScoped<IProveedorColaboradorRepository, ProveedorColaboradorRepository>();
         services.AddScoped<IInvitacionEquipoRepository, InvitacionEquipoRepository>();
-        services.AddSingleton<IInformeExcelExporter, InformeExcelExporter>();
         services.AddScoped<IClientesImportExporter, ClientesImportExporter>();
         services.AddScoped<IProveedoresImportExporter, ProveedoresImportExporter>();
         services.AddScoped<IProyectosImportExporter, ProyectosImportExporter>();

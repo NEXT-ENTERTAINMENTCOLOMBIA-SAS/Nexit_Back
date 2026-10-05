@@ -233,17 +233,16 @@ public class AuthorizationIntegrationTests(NexitApiFactory factory) : IClassFixt
         Assert.NotEqual(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
-    // Informes semanal/mensual (ver docs/07-calendario-e-informes-excel.md) — exclusivo de
-    // super_admin/admin, igual que la gestión de usuarios pero un nivel más abajo.
+    // Panel de Project Managers (reemplaza a Informes, 2026-10-05) — exclusivo de super_admin/admin.
     [Theory]
     [InlineData("miembro")]
     [InlineData("manager")]
-    public async Task GetInformesResumen_with_a_non_admin_role_returns_403(string role)
+    public async Task GetPanelProjectManagers_with_a_non_admin_role_returns_403(string role)
     {
         _client.DefaultRequestHeaders.Remove(TestAuthHandler.TestAuthHeader);
         _client.DefaultRequestHeaders.Add(TestAuthHandler.TestAuthHeader, role);
 
-        var response = await _client.GetAsync("/api/informes/resumen");
+        var response = await _client.GetAsync("/api/panel/project-managers");
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
@@ -251,33 +250,70 @@ public class AuthorizationIntegrationTests(NexitApiFactory factory) : IClassFixt
     [Theory]
     [InlineData("admin")]
     [InlineData("super_admin")]
-    public async Task GetInformesResumen_with_admin_or_above_passes_authorization(string role)
+    public async Task GetPanelProjectManagers_with_admin_or_above_passes_authorization(string role)
     {
         _client.DefaultRequestHeaders.Remove(TestAuthHandler.TestAuthHeader);
         _client.DefaultRequestHeaders.Add(TestAuthHandler.TestAuthHeader, role);
 
-        var response = await _client.GetAsync("/api/informes/resumen");
+        var response = await _client.GetAsync("/api/panel/project-managers");
 
         Assert.NotEqual(HttpStatusCode.Unauthorized, response.StatusCode);
         Assert.NotEqual(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
     [Fact]
-    public async Task ExportarInformeResumen_with_a_non_admin_role_returns_403()
+    public async Task GetPanelProjectManagers_without_a_token_returns_401()
+    {
+        var response = await _client.GetAsync("/api/panel/project-managers");
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    // Configuración editable (2026-10-05): leer roles/listas lo puede hacer cualquier autenticado;
+    // cambiarlos, solo admin+; los dominios de correo permitidos, solo super_admin.
+    [Fact]
+    public async Task GetConfiguracionRoles_without_a_token_returns_401()
+    {
+        var response = await _client.GetAsync("/api/configuracion/roles");
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData("miembro")]
+    [InlineData("manager")]
+    public async Task PutConfiguracionRol_with_a_non_admin_role_returns_403(string role)
     {
         _client.DefaultRequestHeaders.Remove(TestAuthHandler.TestAuthHeader);
-        _client.DefaultRequestHeaders.Add(TestAuthHandler.TestAuthHeader, "miembro");
+        _client.DefaultRequestHeaders.Add(TestAuthHandler.TestAuthHeader, role);
 
-        var response = await _client.GetAsync("/api/informes/resumen/exportar");
+        var response = await _client.PutAsJsonAsync("/api/configuracion/roles/manager", new { etiqueta = "PM", descripcion = "" });
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
-    [Fact]
-    public async Task GetInformesResumen_without_a_token_returns_401()
+    [Theory]
+    [InlineData("miembro")]
+    [InlineData("manager")]
+    [InlineData("admin")]
+    public async Task ConfiguracionDominiosCorreo_below_super_admin_returns_403(string role)
     {
-        var response = await _client.GetAsync("/api/informes/resumen");
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        _client.DefaultRequestHeaders.Remove(TestAuthHandler.TestAuthHeader);
+        _client.DefaultRequestHeaders.Add(TestAuthHandler.TestAuthHeader, role);
+
+        Assert.Equal(HttpStatusCode.Forbidden, (await _client.GetAsync("/api/configuracion/dominios-correo")).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await _client.PostAsJsonAsync("/api/configuracion/dominios-correo", new { dominio = "otra.com" })).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await _client.DeleteAsync($"/api/configuracion/dominios-correo/{Guid.NewGuid()}")).StatusCode);
+    }
+
+    [Theory]
+    [InlineData("miembro")]
+    [InlineData("manager")]
+    public async Task ConfiguracionOpciones_writes_with_a_non_admin_role_return_403(string role)
+    {
+        _client.DefaultRequestHeaders.Remove(TestAuthHandler.TestAuthHeader);
+        _client.DefaultRequestHeaders.Add(TestAuthHandler.TestAuthHeader, role);
+
+        Assert.Equal(HttpStatusCode.Forbidden, (await _client.PostAsJsonAsync("/api/configuracion/opciones/prioridad", new { valor = "Urgente" })).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await _client.DeleteAsync($"/api/configuracion/opciones/prioridad/{Guid.NewGuid()}")).StatusCode);
     }
 
     // Eliminación automática de usuarios inactivos (docs/17-eliminacion-automatica-usuarios.md): el

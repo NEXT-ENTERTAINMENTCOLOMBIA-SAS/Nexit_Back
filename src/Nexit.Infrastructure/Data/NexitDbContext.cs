@@ -37,6 +37,8 @@ public class NexitDbContext(DbContextOptions<NexitDbContext> options) : DbContex
     public DbSet<HistorialCambio> HistorialCambios => Set<HistorialCambio>();
     public DbSet<ProveedorColaborador> ProveedorColaboradores => Set<ProveedorColaborador>();
     public DbSet<InvitacionEquipo> InvitacionesEquipo => Set<InvitacionEquipo>();
+    public DbSet<RolConfig> RolesConfig => Set<RolConfig>();
+    public DbSet<OpcionConfig> OpcionesConfig => Set<OpcionConfig>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -185,9 +187,6 @@ modelBuilder.Entity<ProyectoAdjunto>(entity => { entity.ToTable("proyecto_adjunt
             entity.ToTable("proyectos", t =>
             {
                 t.HasCheckConstraint("ck_proyectos_porcentaje", "porcentaje_avance BETWEEN 0 AND 100");
-                t.HasCheckConstraint("ck_proyectos_tipo", "tipo_proyecto IS NULL OR tipo_proyecto IN ('Corporativo', 'Evento social')");
-                t.HasCheckConstraint("ck_proyectos_prioridad", "prioridad IS NULL OR prioridad IN ('Alta', 'Media', 'Baja')");
-                t.HasCheckConstraint("ck_proyectos_propuesta", "propuesta_estado IN ('No enviada', 'En proceso', 'Enviada')");
                 t.HasCheckConstraint("ck_proyectos_pago", "NOT pagado OR fecha_pago IS NOT NULL");
             });
             entity.HasKey(x => x.Id);
@@ -211,7 +210,7 @@ modelBuilder.Entity<ProyectoAdjunto>(entity => { entity.ToTable("proyecto_adjunt
         });
         modelBuilder.Entity<ProyectoSeguimiento>(entity =>
         {
-            entity.ToTable("proyecto_seguimiento", t => t.HasCheckConstraint("ck_proyecto_seguimiento_area", "area IN ('General', 'Creativo', 'Comercial', 'Administrativo')"));
+            entity.ToTable("proyecto_seguimiento");
             entity.HasKey(x => x.Id);
             entity.Property(x => x.Id).HasDefaultValueSql("gen_random_uuid()");
             entity.Ignore(x => x.UpdatedAt); entity.Ignore(x => x.CreatedBy); entity.Ignore(x => x.UpdatedBy);
@@ -306,6 +305,23 @@ modelBuilder.Entity<ProyectoAdjunto>(entity => { entity.ToTable("proyecto_adjunt
             // SetNull, no Restrict (2026-09-08): mismo motivo que en historial_cambios y solicitudes_eliminacion
             // -- quien invitó puede irse del equipo, y sus invitaciones no deben bloquear su eliminación.
             entity.HasOne(x => x.InvitadoPor).WithMany().HasForeignKey(x => x.InvitadoPorId).OnDelete(DeleteBehavior.SetNull);
+        });
+        modelBuilder.Entity<RolConfig>(entity =>
+        {
+            entity.ToTable("roles_config");
+            entity.HasKey(x => x.Rol);
+            entity.Property(x => x.Rol).HasMaxLength(30);
+            entity.Property(x => x.Etiqueta).HasMaxLength(60).IsRequired();
+            entity.Property(x => x.Descripcion).HasMaxLength(255).IsRequired().HasDefaultValue(string.Empty);
+        });
+        modelBuilder.Entity<OpcionConfig>(entity =>
+        {
+            entity.ToTable("opciones_config");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(x => x.Lista).HasMaxLength(40).IsRequired();
+            entity.Property(x => x.Valor).HasMaxLength(100).IsRequired();
+            entity.HasIndex(x => new { x.Lista, x.Valor }).IsUnique();
         });
     }
 }
