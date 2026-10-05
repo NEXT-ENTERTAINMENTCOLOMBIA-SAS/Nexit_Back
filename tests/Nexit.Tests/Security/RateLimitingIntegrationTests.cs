@@ -29,7 +29,7 @@ public class RateLimitingIntegrationTests(NexitApiFactory factory) : IClassFixtu
         var estados = new List<HttpStatusCode>();
         for (var i = 0; i < 105; i++)
         {
-            var respuesta = await client.GetAsync("/api/panel/project-managers");
+            var respuesta = await client.GetAsync("/api/configuracion/dominios-correo");
             estados.Add(respuesta.StatusCode);
         }
 
@@ -46,14 +46,14 @@ public class RateLimitingIntegrationTests(NexitApiFactory factory) : IClassFixtu
         var clienteA = factory.CreateClient();
         clienteA.DefaultRequestHeaders.Add(TestAuthHandler.TestAuthHeader, "miembro");
         clienteA.DefaultRequestHeaders.Add(TestAuthHandler.TestUserIdHeader, Guid.NewGuid().ToString());
-        for (var i = 0; i < 100; i++) await clienteA.GetAsync("/api/panel/project-managers");
-        var agotado = await clienteA.GetAsync("/api/panel/project-managers");
+        for (var i = 0; i < 100; i++) await clienteA.GetAsync("/api/configuracion/dominios-correo");
+        var agotado = await clienteA.GetAsync("/api/configuracion/dominios-correo");
         Assert.Equal((HttpStatusCode)429, agotado.StatusCode);
 
         var clienteB = factory.CreateClient();
         clienteB.DefaultRequestHeaders.Add(TestAuthHandler.TestAuthHeader, "miembro");
         clienteB.DefaultRequestHeaders.Add(TestAuthHandler.TestUserIdHeader, Guid.NewGuid().ToString());
-        var primeraDeB = await clienteB.GetAsync("/api/panel/project-managers");
+        var primeraDeB = await clienteB.GetAsync("/api/configuracion/dominios-correo");
         Assert.Equal(HttpStatusCode.Forbidden, primeraDeB.StatusCode); // 403 por rol, no 429 -- su cupo sigue intacto.
     }
 }

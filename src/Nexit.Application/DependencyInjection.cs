@@ -27,6 +27,7 @@ public static class DependencyInjection
         services.AddScoped<IEliminarClienteUseCase, EliminarClienteUseCase>();
         services.AddScoped<IConsultarPrioridadClientesUseCase, ConsultarPrioridadClientesUseCase>();
         services.AddScoped<IClienteAdjuntosUseCase, ClienteAdjuntosUseCase>();
+        services.AddScoped<IClienteNotasUseCase, ClienteNotasUseCase>();
         services.AddScoped<ICatalogosService, CatalogosService>();
         services.AddScoped<ICrearProveedorUseCase, CrearProveedorUseCase>();
         services.AddScoped<IActualizarProveedorUseCase, ActualizarProveedorUseCase>();

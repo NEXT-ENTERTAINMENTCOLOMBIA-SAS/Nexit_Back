@@ -115,4 +115,22 @@ public class PanelProjectManagersTests
 
         Assert.Equal(1, panel.SinProjectManager!.TotalProyectos);
     }
+
+    [Fact]
+    public async Task Con_soloGerenteId_cada_persona_ve_solo_sus_proyectos_y_no_aparece_la_tarjeta_de_sin_PM()
+    {
+        var proyectos = new[]
+        {
+            Proyecto("Lanzamiento", Ana, ClienteA, "Acme"),
+            Proyecto("Gala", Beto, ClienteB, "Beta"),
+            Proyecto("Huérfano", null, ClienteB, "Beta"),
+        };
+        var usuarios = new[] { new PanelUsuarioFila(Ana, "Ana", "Ruiz", "ana@k11.com", "manager", true, "AR") };
+
+        var panel = await Caso(proyectos, usuarios).ExecuteAsync(default, Ana);
+
+        Assert.Equal(1, panel.Resumen.TotalProyectos);
+        Assert.Null(panel.SinProjectManager);
+        Assert.Equal("Lanzamiento", Assert.Single(Assert.Single(panel.ProjectManagers).Proyectos).Nombre);
+    }
 }

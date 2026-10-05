@@ -3,7 +3,11 @@ using Nexit.Core.Interfaces;
 
 namespace Nexit.Application.UseCases.PanelPm;
 
-public interface IConsultarPanelProjectManagersUseCase { Task<PanelPmDto> ExecuteAsync(CancellationToken cancellationToken = default); }
+public interface IConsultarPanelProjectManagersUseCase
+{
+    /// <param name="soloGerenteId">Si viene, el panel se limita a los proyectos de esa persona (rol no administrador: "cada uno ve los suyos").</param>
+    Task<PanelPmDto> ExecuteAsync(CancellationToken cancellationToken = default, Guid? soloGerenteId = null);
+}
 
 /// <summary>
 /// Reemplaza al módulo de Informes (2026-10-05): ya no se guardan capturas semanales ni se exporta a
@@ -13,9 +17,10 @@ public interface IConsultarPanelProjectManagersUseCase { Task<PanelPmDto> Execut
 /// </summary>
 public class ConsultarPanelProjectManagersUseCase(IPanelProjectManagersRepository repository) : IConsultarPanelProjectManagersUseCase
 {
-    public async Task<PanelPmDto> ExecuteAsync(CancellationToken ct = default)
+    public async Task<PanelPmDto> ExecuteAsync(CancellationToken ct = default, Guid? soloGerenteId = null)
     {
         var proyectos = await repository.GetProyectosAsync(ct);
+        if (soloGerenteId.HasValue) proyectos = proyectos.Where(p => p.GerenteId == soloGerenteId.Value).ToList();
         var gerenteIds = proyectos.Where(p => p.GerenteId.HasValue).Select(p => p.GerenteId!.Value).Distinct().ToList();
         var usuarios = await repository.GetPosiblesProjectManagersAsync(gerenteIds, ct);
 

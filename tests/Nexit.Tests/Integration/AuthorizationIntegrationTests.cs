@@ -233,18 +233,27 @@ public class AuthorizationIntegrationTests(NexitApiFactory factory) : IClassFixt
         Assert.NotEqual(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
-    // Panel de Project Managers (reemplaza a Informes, 2026-10-05) — exclusivo de super_admin/admin.
+    // Panel de Project Managers (reemplaza a Informes, 2026-10-05) — lo ve cualquier rol con sesión
+    // (admin/super_admin ven todo; el resto solo lo suyo, eso lo decide el caso de uso).
     [Theory]
     [InlineData("miembro")]
     [InlineData("manager")]
-    public async Task GetPanelProjectManagers_with_a_non_admin_role_returns_403(string role)
+    public async Task GetPanelProjectManagers_with_a_non_admin_role_passes_authorization(string role)
     {
         _client.DefaultRequestHeaders.Remove(TestAuthHandler.TestAuthHeader);
         _client.DefaultRequestHeaders.Add(TestAuthHandler.TestAuthHeader, role);
 
         var response = await _client.GetAsync("/api/panel/project-managers");
 
-        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        Assert.NotEqual(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.NotEqual(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetClienteNotas_without_a_token_returns_401()
+    {
+        var response = await _client.GetAsync($"/api/clientes/{Guid.NewGuid()}/notas");
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
     [Theory]

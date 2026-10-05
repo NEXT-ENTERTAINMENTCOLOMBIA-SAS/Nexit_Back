@@ -18,6 +18,7 @@ public class NexitDbContext(DbContextOptions<NexitDbContext> options) : DbContex
     public DbSet<ClienteTelefono> ClienteTelefonos => Set<ClienteTelefono>();
     public DbSet<ClienteEmail> ClienteEmails => Set<ClienteEmail>();
     public DbSet<ClienteAdjunto> ClienteAdjuntos => Set<ClienteAdjunto>();
+    public DbSet<ClienteNota> ClienteNotas => Set<ClienteNota>();
     public DbSet<Proveedor> Proveedores => Set<Proveedor>();
     public DbSet<ProveedorTelefono> ProveedorTelefonos => Set<ProveedorTelefono>();
     public DbSet<ProveedorEmail> ProveedorEmails => Set<ProveedorEmail>();
@@ -174,6 +175,18 @@ public class NexitDbContext(DbContextOptions<NexitDbContext> options) : DbContex
         modelBuilder.Entity<ProveedorAdjunto>(entity => { entity.ToTable("proveedor_adjuntos", t => t.HasCheckConstraint("ck_proveedor_adjuntos_tipo", "tipo IN ('link', 'file')")); entity.HasKey(x => x.Id); entity.Property(x => x.Id).HasDefaultValueSql("gen_random_uuid()"); entity.Property(x => x.Tipo).HasMaxLength(10).IsRequired(); entity.Property(x => x.Nombre).HasMaxLength(255).IsRequired(); entity.Property(x => x.ContentType).HasMaxLength(255); entity.Property(x => x.Fecha).HasDefaultValueSql("CURRENT_DATE"); entity.Property(x => x.CreatedAt).HasDefaultValueSql("now()"); });
 modelBuilder.Entity<ClienteAdjunto>(entity => { entity.ToTable("cliente_adjuntos", t => t.HasCheckConstraint("ck_cliente_adjuntos_tipo", "tipo IN ('link', 'file')")); entity.HasKey(x => x.Id); entity.Property(x => x.Id).HasDefaultValueSql("gen_random_uuid()"); entity.Property(x => x.Tipo).HasMaxLength(10).IsRequired(); entity.Property(x => x.Nombre).HasMaxLength(255).IsRequired(); entity.Property(x => x.ContentType).HasMaxLength(255); entity.Property(x => x.Fecha).HasDefaultValueSql("CURRENT_DATE"); entity.Property(x => x.CreatedAt).HasDefaultValueSql("now()"); });
 modelBuilder.Entity<ProyectoAdjunto>(entity => { entity.ToTable("proyecto_adjuntos", t => t.HasCheckConstraint("ck_proyecto_adjuntos_tipo", "tipo IN ('link', 'file')")); entity.HasKey(x => x.Id); entity.Property(x => x.Id).HasDefaultValueSql("gen_random_uuid()"); entity.Property(x => x.Tipo).HasMaxLength(10).IsRequired(); entity.Property(x => x.Nombre).HasMaxLength(255).IsRequired(); entity.Property(x => x.ContentType).HasMaxLength(255); entity.Property(x => x.Fecha).HasDefaultValueSql("CURRENT_DATE"); entity.Property(x => x.CreatedAt).HasDefaultValueSql("now()"); });
+        modelBuilder.Entity<ClienteNota>(entity =>
+        {
+            entity.ToTable("cliente_notas");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasDefaultValueSql("gen_random_uuid()");
+            entity.Ignore(x => x.UpdatedAt); entity.Ignore(x => x.CreatedBy); entity.Ignore(x => x.UpdatedBy);
+            entity.Property(x => x.Area).HasMaxLength(100).HasDefaultValue("General"); entity.Property(x => x.Nota).IsRequired();
+            entity.Property(x => x.Fecha).HasDefaultValueSql("now()"); entity.Property(x => x.CreatedAt).HasDefaultValueSql("now()");
+            entity.HasIndex(x => new { x.ClienteId, x.Fecha });
+            entity.HasOne(x => x.Cliente).WithMany().HasForeignKey(x => x.ClienteId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(x => x.Autor).WithMany().HasForeignKey(x => x.AutorId).OnDelete(DeleteBehavior.SetNull);
+        });
         modelBuilder.Entity<DominioCorreoPermitido>(entity => { entity.ToTable("dominios_correo_permitidos"); entity.HasKey(x => x.Id); entity.Property(x => x.Id).HasDefaultValueSql("gen_random_uuid()"); entity.HasIndex(x => x.Dominio).IsUnique(); entity.Property(x => x.Dominio).HasMaxLength(255).IsRequired(); });
         modelBuilder.Entity<Servicio>(entity => { entity.ToTable("servicios"); entity.HasKey(x => x.Id); entity.Property(x => x.Id).HasDefaultValueSql("gen_random_uuid()"); entity.HasIndex(x => x.Nombre).IsUnique(); entity.Ignore(x => x.UpdatedBy); });
         modelBuilder.Entity<ProveedorServicio>(entity =>
