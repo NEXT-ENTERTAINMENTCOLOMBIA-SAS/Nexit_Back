@@ -9,5 +9,4 @@ public class InformeSnapshot : BaseEntity
     public int TotalProyectos { get; set; }
     public int ProyectosSinProveedor { get; set; }
     public string PorEstado { get; set; } = "{}";
-    public string PorBrief { get; set; } = "{}";
 }

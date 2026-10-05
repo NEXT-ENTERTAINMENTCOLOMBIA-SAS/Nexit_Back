@@ -568,11 +568,6 @@ namespace Nexit.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("periodo_key");
 
-                    b.Property<string>("PorBrief")
-                        .IsRequired()
-                        .HasColumnType("jsonb")
-                        .HasColumnName("por_brief");
-
                     b.Property<string>("PorEstado")
                         .IsRequired()
                         .HasColumnType("jsonb")
@@ -1122,13 +1117,6 @@ namespace Nexit.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("created_by");
 
-                    b.Property<string>("EstadoBrief")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("text")
-                        .HasDefaultValue("Pendiente por enviar")
-                        .HasColumnName("estado_brief");
-
                     b.Property<Guid>("EstadoId")
                         .HasColumnType("uuid")
                         .HasColumnName("estado_id");
@@ -1219,9 +1207,6 @@ namespace Nexit.Infrastructure.Migrations
                     b.HasIndex("CreatedBy")
                         .HasDatabaseName("ix_proyectos_created_by");
 
-                    b.HasIndex("EstadoBrief")
-                        .HasDatabaseName("ix_proyectos_estado_brief");
-
                     b.HasIndex("EstadoId")
                         .HasDatabaseName("ix_proyectos_estado_id");
 
@@ -1236,8 +1221,6 @@ namespace Nexit.Infrastructure.Migrations
 
                     b.ToTable("proyectos", null, t =>
                         {
-                            t.HasCheckConstraint("ck_proyectos_brief", "estado_brief IN ('Pendiente por enviar', 'Entregado, a espera de respuesta', 'Requiere ajustes', 'Aprobado')");
-
                             t.HasCheckConstraint("ck_proyectos_pago", "NOT pagado OR fecha_pago IS NOT NULL");
 
                             t.HasCheckConstraint("ck_proyectos_porcentaje", "porcentaje_avance BETWEEN 0 AND 100");
@@ -1348,10 +1331,7 @@ namespace Nexit.Infrastructure.Migrations
                     b.HasIndex("ProyectoId")
                         .HasDatabaseName("ix_proyecto_equipo_proyecto_id");
 
-                    b.ToTable("proyecto_equipo", null, t =>
-                        {
-                            t.HasCheckConstraint("ck_proyecto_equipo_rol", "rol IN ('Ejecutivo', 'Comercial', 'Administrativo', 'Diseñador 3D', 'Diseñador gráfico')");
-                        });
+                    b.ToTable("proyecto_equipo");
                 });
 
             modelBuilder.Entity("Nexit.Core.Entities.ProyectoProveedor", b =>

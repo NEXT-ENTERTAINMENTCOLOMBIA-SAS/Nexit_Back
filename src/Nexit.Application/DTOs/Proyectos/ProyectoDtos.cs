@@ -20,7 +20,6 @@ public class CrearProyectoDto
     public DateTime? FechaEvento { get; set; }
     public Guid EstadoId { get; set; }
     public int PorcentajeAvance { get; set; }
-    public string EstadoBrief { get; set; } = "Pendiente por enviar";
     public string PropuestaEstado { get; set; } = "No enviada";
     public string? NumeroFactura { get; set; }
     public bool Pagado { get; set; }

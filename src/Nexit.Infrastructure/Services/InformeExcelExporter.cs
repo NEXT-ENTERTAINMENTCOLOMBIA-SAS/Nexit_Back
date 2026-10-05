@@ -7,8 +7,8 @@ namespace Nexit.Infrastructure.Services;
 /// <summary>
 /// Implementación con ClosedXML (licencia MIT, gratis para uso comercial -- ver
 /// docs/07-calendario-e-informes-excel.md sobre por qué se eligió sobre EPPlus) de
-/// <see cref="IInformeExcelExporter"/>. Tres hojas por archivo: Resumen (los 4 totales),
-/// Por estado y Por brief (una fila por cada valor del diccionario correspondiente).
+/// <see cref="IInformeExcelExporter"/>. Dos hojas por archivo: Resumen (los 4 totales) y
+/// Por estado (una fila por cada valor del diccionario).
 /// </summary>
 public class InformeExcelExporter : IInformeExcelExporter
 {
@@ -36,7 +36,6 @@ public class InformeExcelExporter : IInformeExcelExporter
         resumen.Column(2).AdjustToContents();
 
         AgregarHojaDeConteo(workbook, "Por estado", "Estado", datos.PorEstado);
-        AgregarHojaDeConteo(workbook, "Por brief", "Estado de brief", datos.PorBrief);
 
         using var stream = new MemoryStream();
         workbook.SaveAs(stream);

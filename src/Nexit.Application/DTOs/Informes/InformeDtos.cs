@@ -7,7 +7,6 @@ public class InformeResumenDto
     public int TotalProyectos { get; init; }
     public int ProyectosSinProveedor { get; init; }
     public IReadOnlyDictionary<string, int> PorEstado { get; init; } = new Dictionary<string, int>();
-    public IReadOnlyDictionary<string, int> PorBrief { get; init; } = new Dictionary<string, int>();
 }
 
 public class InformeSnapshotDto : InformeResumenDto

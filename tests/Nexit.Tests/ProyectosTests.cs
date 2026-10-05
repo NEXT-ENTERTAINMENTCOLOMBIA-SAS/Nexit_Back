@@ -200,7 +200,6 @@ public class ProyectosTests
             Nombre = "Lanzamiento Q4",
             EstadoId = Guid.NewGuid(),
             PorcentajeAvance = 0,
-            EstadoBrief = "Pendiente por enviar",
             PropuestaEstado = "No enviada",
             Equipo = [new ProyectoEquipoDto { Nombre = "Juliana Pérez", Rol = "" }],
         };
@@ -211,20 +210,19 @@ public class ProyectosTests
     }
 
     [Fact]
-    public void CrearProyectoValidator_still_rejects_an_unknown_functional_role()
+    public void CrearProyectoValidator_accepts_a_free_text_cargo()
     {
         var dto = new CrearProyectoDto
         {
             Nombre = "Lanzamiento Q4",
             EstadoId = Guid.NewGuid(),
             PorcentajeAvance = 0,
-            EstadoBrief = "Pendiente por enviar",
             PropuestaEstado = "No enviada",
-            Equipo = [new ProyectoEquipoDto { Nombre = "Juliana Pérez", Rol = "Astronauta" }],
+            Equipo = [new ProyectoEquipoDto { Nombre = "Juliana Pérez", Rol = "Producción" }],
         };
 
         var result = new CrearProyectoValidator().Validate(dto);
 
-        Assert.False(result.IsValid);
+        Assert.True(result.IsValid);
     }
 }

@@ -23,7 +23,7 @@ public class GenerarInformeSnapshotUseCase(IInformesRepository repository, IUnit
         if (string.IsNullOrWhiteSpace(input.PeriodoKey)) throw new BusinessRuleException("El período del informe es requerido.");
         if (await repository.GetByPeriodoAsync(input.Tipo, input.PeriodoKey.Trim(), ct) is not null) throw new BusinessRuleException("Ya existe un informe para ese período.");
         var datos = await repository.ObtenerDatosAsync(ct);
-        var snapshot = new InformeSnapshot { Tipo = input.Tipo, PeriodoKey = input.PeriodoKey.Trim(), TotalProveedores = datos.TotalProveedores, TotalClientes = datos.TotalClientes, TotalProyectos = datos.TotalProyectos, ProyectosSinProveedor = datos.ProyectosSinProveedor, PorEstado = JsonSerializer.Serialize(datos.PorEstado), PorBrief = JsonSerializer.Serialize(datos.PorBrief), CreatedBy = usuarioId };
+        var snapshot = new InformeSnapshot { Tipo = input.Tipo, PeriodoKey = input.PeriodoKey.Trim(), TotalProveedores = datos.TotalProveedores, TotalClientes = datos.TotalClientes, TotalProyectos = datos.TotalProyectos, ProyectosSinProveedor = datos.ProyectosSinProveedor, PorEstado = JsonSerializer.Serialize(datos.PorEstado), CreatedBy = usuarioId };
         await repository.AddAsync(snapshot, ct); await unitOfWork.SaveChangesAsync(ct);
         return InformesMapper.ToSnapshot(snapshot);
     }
@@ -31,7 +31,7 @@ public class GenerarInformeSnapshotUseCase(IInformesRepository repository, IUnit
 
 internal static class InformesMapper
 {
-    public static InformeResumenDto ToResumen(InformeDatos datos) => new() { TotalProveedores = datos.TotalProveedores, TotalClientes = datos.TotalClientes, TotalProyectos = datos.TotalProyectos, ProyectosSinProveedor = datos.ProyectosSinProveedor, PorEstado = datos.PorEstado, PorBrief = datos.PorBrief };
-    public static InformeSnapshotDto ToSnapshot(InformeSnapshot snapshot) => new() { Id = snapshot.Id, Tipo = snapshot.Tipo, PeriodoKey = snapshot.PeriodoKey, CreatedAt = snapshot.CreatedAt, TotalProveedores = snapshot.TotalProveedores, TotalClientes = snapshot.TotalClientes, TotalProyectos = snapshot.TotalProyectos, ProyectosSinProveedor = snapshot.ProyectosSinProveedor, PorEstado = Deserialize(snapshot.PorEstado), PorBrief = Deserialize(snapshot.PorBrief) };
+    public static InformeResumenDto ToResumen(InformeDatos datos) => new() { TotalProveedores = datos.TotalProveedores, TotalClientes = datos.TotalClientes, TotalProyectos = datos.TotalProyectos, ProyectosSinProveedor = datos.ProyectosSinProveedor, PorEstado = datos.PorEstado };
+    public static InformeSnapshotDto ToSnapshot(InformeSnapshot snapshot) => new() { Id = snapshot.Id, Tipo = snapshot.Tipo, PeriodoKey = snapshot.PeriodoKey, CreatedAt = snapshot.CreatedAt, TotalProveedores = snapshot.TotalProveedores, TotalClientes = snapshot.TotalClientes, TotalProyectos = snapshot.TotalProyectos, ProyectosSinProveedor = snapshot.ProyectosSinProveedor, PorEstado = Deserialize(snapshot.PorEstado) };
     private static IReadOnlyDictionary<string, int> Deserialize(string json) => JsonSerializer.Deserialize<Dictionary<string, int>>(json) ?? new Dictionary<string, int>();
 }

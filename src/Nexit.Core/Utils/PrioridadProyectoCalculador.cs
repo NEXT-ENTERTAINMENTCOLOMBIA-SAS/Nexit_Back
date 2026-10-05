@@ -21,7 +21,7 @@ public static class PrioridadProyectoCalculador
     public const int PuntosPrioridadMedia = 10;
     public const int PuntosSinActividadReciente = 20;
     public const int DiasSinActividadParaAlertar = 5;
-    public const int PuntosPropuestaOBriefPendiente = 15;
+    public const int PuntosPropuestaPendiente = 15;
     public const int PuntosSinPagarConEventoCerca = 10;
     public const int DiasParaConsiderarEventoCerca = 14;
 
@@ -64,14 +64,12 @@ public static class PrioridadProyectoCalculador
             razones.Add($"Sin actividad registrada hace {diasSinActividad} días.");
         }
 
-        // 4) Propuesta o brief todavía pendientes de enviar (un solo puntaje, aunque falten los dos).
+        // 4) Propuesta todavía pendiente de enviar.
         var propuestaPendiente = string.Equals(proyecto.PropuestaEstado?.Trim(), "No enviada", StringComparison.OrdinalIgnoreCase);
-        var briefPendiente = string.Equals(proyecto.EstadoBrief?.Trim(), "Pendiente por enviar", StringComparison.OrdinalIgnoreCase);
-        if (propuestaPendiente || briefPendiente)
+        if (propuestaPendiente)
         {
-            puntaje += PuntosPropuestaOBriefPendiente;
-            if (propuestaPendiente) razones.Add("La propuesta todavía no se ha enviado.");
-            if (briefPendiente) razones.Add("El brief todavía está pendiente por enviar.");
+            puntaje += PuntosPropuestaPendiente;
+            razones.Add("La propuesta todavía no se ha enviado.");
         }
 
         // 5) Sin pagar y con el evento ya cerca.

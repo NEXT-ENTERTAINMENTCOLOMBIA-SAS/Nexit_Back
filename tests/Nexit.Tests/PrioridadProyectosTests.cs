@@ -17,7 +17,7 @@ public class PrioridadProyectosTests
 
     private static Proyecto ProyectoBase() => new()
     {
-        Nombre = "Lanzamiento", PropuestaEstado = "Enviada", EstadoBrief = "Listo", Pagado = true
+        Nombre = "Lanzamiento", PropuestaEstado = "Enviada", Pagado = true
     };
 
     [Fact]
@@ -101,19 +101,15 @@ public class PrioridadProyectosTests
         Assert.Equal(0, resultado.Puntaje);
     }
 
-    [Theory]
-    [InlineData("No enviada", "Listo")]
-    [InlineData("Enviada", "Pendiente por enviar")]
-    [InlineData("No enviada", "Pendiente por enviar")]
-    public void Calcular_puntua_una_sola_vez_asi_falten_propuesta_y_brief_a_la_vez(string propuestaEstado, string estadoBrief)
+    [Fact]
+    public void Calcular_puntua_si_la_propuesta_no_se_ha_enviado()
     {
         var proyecto = ProyectoBase();
-        proyecto.PropuestaEstado = propuestaEstado;
-        proyecto.EstadoBrief = estadoBrief;
+        proyecto.PropuestaEstado = "No enviada";
 
         var resultado = PrioridadProyectoCalculador.Calcular(proyecto, Ahora, Ahora);
 
-        Assert.Equal(PrioridadProyectoCalculador.PuntosPropuestaOBriefPendiente, resultado.Puntaje);
+        Assert.Equal(PrioridadProyectoCalculador.PuntosPropuestaPendiente, resultado.Puntaje);
     }
 
     [Fact]
@@ -146,16 +142,16 @@ public class PrioridadProyectosTests
         var proyecto = new Proyecto
         {
             Nombre = "Crítico", FechaEvento = Ahora.AddDays(2), Prioridad = "Alta",
-            PropuestaEstado = "No enviada", EstadoBrief = "Pendiente por enviar", Pagado = false
+            PropuestaEstado = "No enviada", Pagado = false
         };
 
         var resultado = PrioridadProyectoCalculador.Calcular(proyecto, ultimaActividad: Ahora.AddDays(-10), ahora: Ahora);
 
         var esperado = PrioridadProyectoCalculador.PuntosEventoEnLaSemana + PrioridadProyectoCalculador.PuntosPrioridadAlta
-            + PrioridadProyectoCalculador.PuntosSinActividadReciente + PrioridadProyectoCalculador.PuntosPropuestaOBriefPendiente
+            + PrioridadProyectoCalculador.PuntosSinActividadReciente + PrioridadProyectoCalculador.PuntosPropuestaPendiente
             + PrioridadProyectoCalculador.PuntosSinPagarConEventoCerca;
         Assert.Equal(esperado, resultado.Puntaje);
-        Assert.Equal(6, resultado.Razones.Count); // propuesta y brief pendientes cuentan como 2 razones aunque sumen puntos una sola vez
+        Assert.Equal(5, resultado.Razones.Count);
     }
 
     [Fact]
@@ -187,8 +183,8 @@ public class PrioridadProyectosTests
         catalogos.Setup(x => x.GetEstadosAsync(null, It.IsAny<CancellationToken>())).ReturnsAsync([estadoActivo]);
         proyectos.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(
         [
-            new Proyecto { Nombre = "Sin señales", EstadoId = estadoActivo.Id, PropuestaEstado = "Enviada", EstadoBrief = "Listo", Pagado = true },
-            new Proyecto { Nombre = "Prioridad alta", EstadoId = estadoActivo.Id, Prioridad = "Alta", PropuestaEstado = "Enviada", EstadoBrief = "Listo", Pagado = true },
+            new Proyecto { Nombre = "Sin señales", EstadoId = estadoActivo.Id, PropuestaEstado = "Enviada", Pagado = true },
+            new Proyecto { Nombre = "Prioridad alta", EstadoId = estadoActivo.Id, Prioridad = "Alta", PropuestaEstado = "Enviada", Pagado = true },
         ]);
 
         var result = await new ConsultarPrioridadProyectosUseCase(proyectos.Object, catalogos.Object).ExecuteAsync();
@@ -208,7 +204,7 @@ public class PrioridadProyectosTests
         var catalogos = new Mock<ICatalogosRepository>();
         var estadoActivo = new EstadoProyecto { Id = Guid.NewGuid(), Nombre = "En curso", Fase = 2 };
         catalogos.Setup(x => x.GetEstadosAsync(null, It.IsAny<CancellationToken>())).ReturnsAsync([estadoActivo]);
-        var proyectoViejo = new Proyecto { Nombre = "Viejo sin bitácora", EstadoId = estadoActivo.Id, PropuestaEstado = "Enviada", EstadoBrief = "Listo", Pagado = true, CreatedAt = DateTime.UtcNow.AddDays(-30) };
+        var proyectoViejo = new Proyecto { Nombre = "Viejo sin bitácora", EstadoId = estadoActivo.Id, PropuestaEstado = "Enviada", Pagado = true, CreatedAt = DateTime.UtcNow.AddDays(-30) };
         proyectos.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync([proyectoViejo]);
 
         var result = await new ConsultarPrioridadProyectosUseCase(proyectos.Object, catalogos.Object).ExecuteAsync();

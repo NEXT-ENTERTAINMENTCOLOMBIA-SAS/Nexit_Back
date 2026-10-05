@@ -187,15 +187,14 @@ modelBuilder.Entity<ProyectoAdjunto>(entity => { entity.ToTable("proyecto_adjunt
                 t.HasCheckConstraint("ck_proyectos_porcentaje", "porcentaje_avance BETWEEN 0 AND 100");
                 t.HasCheckConstraint("ck_proyectos_tipo", "tipo_proyecto IS NULL OR tipo_proyecto IN ('Corporativo', 'Evento social')");
                 t.HasCheckConstraint("ck_proyectos_prioridad", "prioridad IS NULL OR prioridad IN ('Alta', 'Media', 'Baja')");
-                t.HasCheckConstraint("ck_proyectos_brief", "estado_brief IN ('Pendiente por enviar', 'Entregado, a espera de respuesta', 'Requiere ajustes', 'Aprobado')");
                 t.HasCheckConstraint("ck_proyectos_propuesta", "propuesta_estado IN ('No enviada', 'En proceso', 'Enviada')");
                 t.HasCheckConstraint("ck_proyectos_pago", "NOT pagado OR fecha_pago IS NOT NULL");
             });
             entity.HasKey(x => x.Id);
             entity.Property(x => x.Id).HasDefaultValueSql("gen_random_uuid()");
             entity.Property(x => x.Nombre).HasMaxLength(255).IsRequired();
-            entity.Property(x => x.PorcentajeAvance).HasDefaultValue(0); entity.Property(x => x.EstadoBrief).HasDefaultValue("Pendiente por enviar"); entity.Property(x => x.PropuestaEstado).HasDefaultValue("No enviada"); entity.Property(x => x.Pagado).HasDefaultValue(false); entity.Property(x => x.CreatedAt).HasDefaultValueSql("now()"); entity.Property(x => x.UpdatedAt).HasDefaultValueSql("now()");
-            entity.HasIndex(x => x.FechaEvento); entity.HasIndex(x => x.EstadoId); entity.HasIndex(x => x.EstadoBrief); entity.HasIndex(x => x.Prioridad);
+            entity.Property(x => x.PorcentajeAvance).HasDefaultValue(0); entity.Property(x => x.PropuestaEstado).HasDefaultValue("No enviada"); entity.Property(x => x.Pagado).HasDefaultValue(false); entity.Property(x => x.CreatedAt).HasDefaultValueSql("now()"); entity.Property(x => x.UpdatedAt).HasDefaultValueSql("now()");
+            entity.HasIndex(x => x.FechaEvento); entity.HasIndex(x => x.EstadoId); entity.HasIndex(x => x.Prioridad);
             entity.HasOne<EstadoProyecto>().WithMany().HasForeignKey(x => x.EstadoId).OnDelete(DeleteBehavior.Restrict);
             entity.HasMany(x => x.Equipo).WithOne(x => x.Proyecto).HasForeignKey(x => x.ProyectoId).OnDelete(DeleteBehavior.Cascade);
             entity.HasMany(x => x.Proveedores).WithOne(x => x.Proyecto).HasForeignKey(x => x.ProyectoId).OnDelete(DeleteBehavior.Cascade);
@@ -204,7 +203,7 @@ modelBuilder.Entity<ProyectoAdjunto>(entity => { entity.ToTable("proyecto_adjunt
             entity.HasOne(x => x.Gerente).WithMany().HasForeignKey(x => x.GerenteId).OnDelete(DeleteBehavior.SetNull);
             entity.Property<uint>("xmin").HasColumnName("xmin").ValueGeneratedOnAddOrUpdate().IsRowVersion();
         });
-        modelBuilder.Entity<ProyectoEquipo>(entity => { entity.ToTable("proyecto_equipo", t => t.HasCheckConstraint("ck_proyecto_equipo_rol", "rol IN ('Ejecutivo', 'Comercial', 'Administrativo', 'Diseñador 3D', 'Diseñador gráfico')")); entity.HasKey(x => x.Id); entity.Property(x => x.Id).HasDefaultValueSql("gen_random_uuid()"); entity.Ignore(x => x.CreatedAt); entity.Ignore(x => x.UpdatedAt); entity.Ignore(x => x.CreatedBy); entity.Ignore(x => x.UpdatedBy); entity.Property(x => x.Rol).HasMaxLength(100).IsRequired(); });
+        modelBuilder.Entity<ProyectoEquipo>(entity => { entity.ToTable("proyecto_equipo"); entity.HasKey(x => x.Id); entity.Property(x => x.Id).HasDefaultValueSql("gen_random_uuid()"); entity.Ignore(x => x.CreatedAt); entity.Ignore(x => x.UpdatedAt); entity.Ignore(x => x.CreatedBy); entity.Ignore(x => x.UpdatedBy); entity.Property(x => x.Rol).HasMaxLength(100).IsRequired(); });
         modelBuilder.Entity<ProyectoProveedor>(entity =>
         {
             entity.ToTable("proyecto_proveedores");
@@ -229,7 +228,6 @@ modelBuilder.Entity<ProyectoAdjunto>(entity => { entity.ToTable("proyecto_adjunt
             entity.HasOne<Usuario>().WithMany().HasForeignKey(x => x.CreatedBy).OnDelete(DeleteBehavior.SetNull);
             entity.HasIndex(x => new { x.Tipo, x.PeriodoKey }).IsUnique();
             entity.Property(x => x.PorEstado).HasColumnType("jsonb");
-            entity.Property(x => x.PorBrief).HasColumnType("jsonb");
         });
         modelBuilder.Entity<SolicitudEliminacion>(entity =>
         {

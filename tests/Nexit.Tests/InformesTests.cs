@@ -44,18 +44,17 @@ public class InformeExcelExporterTests
     private static InformeResumenDto DatosDeEjemplo() => new()
     {
         TotalProveedores = 10, TotalClientes = 5, TotalProyectos = 8, ProyectosSinProveedor = 2,
-        PorEstado = new Dictionary<string, int> { ["En curso"] = 5, ["Finalizado"] = 3 },
-        PorBrief = new Dictionary<string, int> { ["Enviado"] = 6, ["Pendiente por enviar"] = 2 }
+        PorEstado = new Dictionary<string, int> { ["En curso"] = 5, ["Finalizado"] = 3 }
     };
 
     [Fact]
-    public void Exportar_produces_a_valid_workbook_with_three_sheets()
+    public void Exportar_produces_a_valid_workbook_with_two_sheets()
     {
         var bytes = new InformeExcelExporter().Exportar("Informe mensual — 2026-08", DatosDeEjemplo());
 
         Assert.NotEmpty(bytes);
         using var workbook = new XLWorkbook(new MemoryStream(bytes));
-        Assert.Equal(["Resumen", "Por estado", "Por brief"], workbook.Worksheets.Select(w => w.Name));
+        Assert.Equal(["Resumen", "Por estado"], workbook.Worksheets.Select(w => w.Name));
     }
 
     [Fact]
@@ -90,7 +89,7 @@ public class InformeExcelExporterTests
     [Fact]
     public void Exportar_handles_empty_dictionaries_without_throwing()
     {
-        var datos = new InformeResumenDto { TotalProveedores = 0, TotalClientes = 0, TotalProyectos = 0, ProyectosSinProveedor = 0, PorEstado = new Dictionary<string, int>(), PorBrief = new Dictionary<string, int>() };
+        var datos = new InformeResumenDto { TotalProveedores = 0, TotalClientes = 0, TotalProyectos = 0, ProyectosSinProveedor = 0, PorEstado = new Dictionary<string, int>() };
 
         var bytes = new InformeExcelExporter().Exportar("Informe vacío", datos);
 

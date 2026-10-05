@@ -65,7 +65,7 @@ public class ProyectosImportExporterTests
     {
         using var workbook = new XLWorkbook();
         var hoja = workbook.Worksheets.Add("Proyectos");
-        string[] columnas = ["Nombre", "Cliente", "Contacto del proyecto", "Tipo de proyecto", "Prioridad", "Ciudad", "Sede Next", "Fecha de solicitud", "Fecha del evento", "Estado", "% de avance", "Estado del brief", "Estado de la propuesta", "N.º de factura", "Pagado (Sí/No)", "Fecha de pago", "Notas"];
+        string[] columnas = ["Nombre", "Cliente", "Contacto del proyecto", "Tipo de proyecto", "Prioridad", "Ciudad", "Sede Next", "Fecha de solicitud", "Fecha del evento", "Estado", "% de avance", "Estado de la propuesta", "N.º de factura", "Pagado (Sí/No)", "Fecha de pago", "Notas"];
         for (var i = 0; i < columnas.Length; i++) hoja.Cell(1, i + 1).Value = columnas[i];
         for (var i = 0; i < valores.Length; i++) if (valores[i] is not null) hoja.Cell(2, i + 1).Value = valores[i];
         var stream = new MemoryStream();
@@ -82,7 +82,7 @@ public class ProyectosImportExporterTests
             .ReturnsAsync((CrearProyectoDto dto, Guid _, string? _, CancellationToken _) => new ProyectoResponseDto { Nombre = dto.Nombre });
         var importer = Importer(crear, ClientesConAcme(), CatalogosConEstadoPropuesta());
 
-        using var archivo = LibroConFila("Lanzamiento producto", "Acme S.A.", null, null, null, null, null, null, null, "Propuesta enviada", null, null, null, null, null, null, null);
+        using var archivo = LibroConFila("Lanzamiento producto", "Acme S.A.", null, null, null, null, null, null, null, "Propuesta enviada", null, null, null, null, null, null);
         var resultado = await importer.ImportarAsync(archivo, Guid.NewGuid(), "admin");
 
         Assert.Equal(1, resultado.Creados);
@@ -124,7 +124,7 @@ public class ProyectosImportExporterTests
         var crear = new Mock<ICrearProyectoUseCase>();
         var importer = Importer(crear, ClientesConAcme(), CatalogosConEstadoPropuesta());
 
-        using var archivo = LibroConFila("Lanzamiento producto", "Cliente inexistente", null, null, null, null, null, null, null, "Propuesta enviada", null, null, null, null, null, null, null);
+        using var archivo = LibroConFila("Lanzamiento producto", "Cliente inexistente", null, null, null, null, null, null, null, "Propuesta enviada", null, null, null, null, null, null);
         var resultado = await importer.ImportarAsync(archivo, Guid.NewGuid(), "admin");
 
         Assert.Equal(0, resultado.Creados);
@@ -143,7 +143,7 @@ public class ProyectosImportExporterTests
             .ReturnsAsync((CrearProyectoDto dto, Guid _, string? _, CancellationToken _) => new ProyectoResponseDto { Nombre = dto.Nombre });
         var importer = Importer(crear, ClientesConAcme(), CatalogosConEstadoPropuesta());
 
-        using var archivo = LibroConFila("Lanzamiento producto", null, null, null, null, null, null, null, null, "Propuesta enviada", null, null, null, null, "Sí", "2026-09-01", null);
+        using var archivo = LibroConFila("Lanzamiento producto", null, null, null, null, null, null, null, null, "Propuesta enviada", null, null, null, "Sí", "2026-09-01", null);
         var resultado = await importer.ImportarAsync(archivo, Guid.NewGuid(), "admin");
 
         Assert.Equal(1, resultado.Creados);
@@ -160,7 +160,7 @@ public class ProyectosImportExporterTests
             Mock.Of<ICrearProyectoUseCase>(), Mock.Of<IActualizarProyectoUseCase>(),
             Mock.Of<IValidator<CrearProyectoDto>>(), Mock.Of<IValidator<ActualizarProyectoDto>>(),
             clientes.Object, Mock.Of<IProyectoRepository>(), CatalogosConEstadoPropuesta().Object);
-        var proyectos = new List<ProyectoResponseDto> { new() { Nombre = "Lanzamiento producto", ClienteId = ClienteId, EstadoId = EstadoId, EstadoBrief = "Pendiente por enviar", PropuestaEstado = "No enviada" } };
+        var proyectos = new List<ProyectoResponseDto> { new() { Nombre = "Lanzamiento producto", ClienteId = ClienteId, EstadoId = EstadoId, PropuestaEstado = "No enviada" } };
 
         var bytes = await importer.ExportarAsync(proyectos);
 

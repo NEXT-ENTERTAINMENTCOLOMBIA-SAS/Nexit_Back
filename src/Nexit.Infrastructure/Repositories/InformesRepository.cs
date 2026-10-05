@@ -18,13 +18,11 @@ public class InformesRepository : Repository<InformeSnapshot>, IInformesReposito
                                join estado in context.EstadosProyecto on proyecto.EstadoId equals estado.Id
                                group proyecto by estado.Nombre into grupo
                                select new { grupo.Key, Total = grupo.Count() }).ToDictionaryAsync(x => x.Key, x => x.Total, cancellationToken);
-        var porBrief = await context.Proyectos.GroupBy(x => x.EstadoBrief)
-            .Select(grupo => new { grupo.Key, Total = grupo.Count() }).ToDictionaryAsync(x => x.Key, x => x.Total, cancellationToken);
         return new InformeDatos(
             await context.Proveedores.CountAsync(cancellationToken),
             await context.Clientes.CountAsync(cancellationToken),
             await context.Proyectos.CountAsync(cancellationToken),
             await context.Proyectos.CountAsync(x => !x.Proveedores.Any(), cancellationToken),
-            porEstado, porBrief);
+            porEstado);
     }
 }

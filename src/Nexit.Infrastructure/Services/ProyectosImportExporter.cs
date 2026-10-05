@@ -36,7 +36,7 @@ public class ProyectosImportExporter(
     [
         "Nombre", "Cliente", "Contacto del proyecto", "Tipo de proyecto", "Prioridad", "Ciudad",
         "Sede Next", "Fecha de solicitud", "Fecha del evento", "Estado", "% de avance",
-        "Estado del brief", "Estado de la propuesta", "N.º de factura", "Pagado (Sí/No)",
+        "Estado de la propuesta", "N.º de factura", "Pagado (Sí/No)",
         "Fecha de pago", "Notas",
     ];
 
@@ -76,12 +76,11 @@ public class ProyectosImportExporter(
             if (p.FechaEvento.HasValue) hoja.Cell(fila, 9).Value = p.FechaEvento.Value;
             hoja.Cell(fila, 10).Value = nombresEstados.TryGetValue(p.EstadoId, out var nombreEstado) ? nombreEstado : "";
             hoja.Cell(fila, 11).Value = p.PorcentajeAvance;
-            hoja.Cell(fila, 12).Value = p.EstadoBrief;
-            hoja.Cell(fila, 13).Value = p.PropuestaEstado;
-            hoja.Cell(fila, 14).Value = p.NumeroFactura ?? "";
-            hoja.Cell(fila, 15).Value = p.Pagado ? "Sí" : "No";
-            if (p.FechaPago.HasValue) hoja.Cell(fila, 16).Value = p.FechaPago.Value;
-            hoja.Cell(fila, 17).Value = p.Notas ?? "";
+            hoja.Cell(fila, 12).Value = p.PropuestaEstado;
+            hoja.Cell(fila, 13).Value = p.NumeroFactura ?? "";
+            hoja.Cell(fila, 14).Value = p.Pagado ? "Sí" : "No";
+            if (p.FechaPago.HasValue) hoja.Cell(fila, 15).Value = p.FechaPago.Value;
+            hoja.Cell(fila, 16).Value = p.Notas ?? "";
         }
         for (var i = 1; i <= Columnas.Length; i++) hoja.Column(i).AdjustToContents();
 
@@ -131,11 +130,10 @@ public class ProyectosImportExporter(
             var fechaSolicitud = FechaOpcional(celdas.Cell(8));
             var fechaEvento = FechaOpcional(celdas.Cell(9));
             var porcentajeAvance = NumeroEnteroOpcional(celdas.Cell(11));
-            var estadoBrief = TextoOpcional(celdas.Cell(12));
-            var propuestaEstado = TextoOpcional(celdas.Cell(13));
-            var numeroFactura = TextoOpcional(celdas.Cell(14));
-            var pagadoExcel = EsSiONoOpcional(celdas.Cell(15));
-            var notas = TextoOpcional(celdas.Cell(17));
+            var propuestaEstado = TextoOpcional(celdas.Cell(12));
+            var numeroFactura = TextoOpcional(celdas.Cell(13));
+            var pagadoExcel = EsSiONoOpcional(celdas.Cell(14));
+            var notas = TextoOpcional(celdas.Cell(16));
 
             // docs/35: reimportar no duplica -- la llave es (Cliente, Nombre), no el nombre solo, porque
             // el mismo nombre de proyecto puede repetirse legítimamente para clientes distintos.
@@ -157,11 +155,10 @@ public class ProyectosImportExporter(
                     FechaEvento = fechaEvento,
                     EstadoId = estadoId.Value,
                     PorcentajeAvance = porcentajeAvance ?? 0,
-                    EstadoBrief = estadoBrief ?? "Pendiente por enviar",
                     PropuestaEstado = propuestaEstado ?? "No enviada",
                     NumeroFactura = numeroFactura,
                     Pagado = pagado,
-                    FechaPago = pagado ? (FechaOpcional(celdas.Cell(16)) ?? DateTime.UtcNow) : null,
+                    FechaPago = pagado ? (FechaOpcional(celdas.Cell(15)) ?? DateTime.UtcNow) : null,
                     Notas = notas,
                 };
 
@@ -210,11 +207,10 @@ public class ProyectosImportExporter(
                     FechaEvento = fechaEvento ?? existente.FechaEvento,
                     EstadoId = estadoId.Value,
                     PorcentajeAvance = porcentajeAvance ?? existente.PorcentajeAvance,
-                    EstadoBrief = estadoBrief ?? existente.EstadoBrief,
                     PropuestaEstado = propuestaEstado ?? existente.PropuestaEstado,
                     NumeroFactura = numeroFactura ?? existente.NumeroFactura,
                     Pagado = pagado,
-                    FechaPago = pagado ? (FechaOpcional(celdas.Cell(16)) ?? existente.FechaPago ?? DateTime.UtcNow) : null,
+                    FechaPago = pagado ? (FechaOpcional(celdas.Cell(15)) ?? existente.FechaPago ?? DateTime.UtcNow) : null,
                     Notas = notas ?? existente.Notas,
                     // Gerente, equipo y proveedores asociados no vienen en este Excel (ver el comentario
                     // de la clase) -- se conservan tal cual, nunca se vacían por reimportar.
