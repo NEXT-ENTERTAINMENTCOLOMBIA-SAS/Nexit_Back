@@ -14,7 +14,7 @@ public class ConfiguracionTests
     private readonly Mock<IConfiguracionRepository> _repo = new();
     private readonly Mock<IUnitOfWork> _uow = new();
 
-    private ConfiguracionService Servicio() => new(_repo.Object, _uow.Object);
+    private ConfiguracionService Servicio() => new(_repo.Object, _uow.Object, new ConfiguracionCache());
 
     [Fact]
     public async Task GetRoles_devuelve_los_4_roles_con_texto_por_defecto_si_la_tabla_esta_vacia()

@@ -15,6 +15,7 @@ public class CrearProyectoValidator : AbstractValidator<CrearProyectoDto>
         RuleFor(x => x.Nombre).NotEmpty().MaximumLength(255);
         RuleFor(x => x.EstadoId).NotEmpty();
         RuleFor(x => x.PorcentajeAvance).InclusiveBetween(0, 100);
+        this.AddDineroRules(x => x.Valor, x => x.Moneda);
         RuleFor(x => x.TipoProyecto).MaximumLength(MaxOpcion).WithMessage("El tipo de proyecto no es válido.");
         RuleFor(x => x.Prioridad).MaximumLength(MaxOpcion).WithMessage("La prioridad no es válida.");
         RuleFor(x => x.SedeNext).MaximumLength(MaxOpcion).WithMessage("La sede no es válida.");

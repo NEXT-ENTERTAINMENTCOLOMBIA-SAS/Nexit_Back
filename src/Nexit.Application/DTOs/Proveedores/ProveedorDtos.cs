@@ -28,6 +28,8 @@ public class CreateProveedorDto
     public string? Direccion { get; set; }
     public int? Aforo { get; set; }
     public string? CostoReferencia { get; set; }
+    public decimal? CostoReferenciaValor { get; set; }
+    public string Moneda { get; set; } = "COP";
     public int? Score { get; set; }
     public string? Presupuesto { get; set; }
     public string? Cobertura { get; set; }

@@ -9,6 +9,7 @@ public class CreateProveedorValidator : AbstractValidator<CreateProveedorDto>
     public CreateProveedorValidator(IProveedorRepository repository)
     {
         RuleFor(x => x.Nombre).NotEmpty().MaximumLength(255);
+        this.AddDineroRules(x => x.CostoReferenciaValor, x => x.Moneda);
         RuleFor(x => x.PaisId).NotEmpty();
         RuleFor(x => x.CategoriaId).NotEmpty();
         // Lista simple de correos, sin "principal" (2026-09-06) -- ver el comentario detallado en

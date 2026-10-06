@@ -30,7 +30,10 @@ public class Cliente : BaseEntity
     public string? Web { get; set; }
     public string? Contacto { get; set; }
     public string? CargoContacto { get; set; }
+    /// <summary>Texto libre histórico; se conserva cuando no se pudo convertir a número. Lo nuevo va en <see cref="ValorReferenciaMonto"/>.</summary>
     public string? ValorReferencia { get; set; }
+    public decimal? ValorReferenciaMonto { get; set; }
+    public string Moneda { get; set; } = "COP";
     public string? Notas { get; set; }
     public ICollection<ClienteTelefono> Telefonos { get; set; } = new List<ClienteTelefono>();
     /// <summary>

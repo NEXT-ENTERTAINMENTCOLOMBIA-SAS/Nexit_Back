@@ -109,6 +109,8 @@ public class NexitDbContext(DbContextOptions<NexitDbContext> options) : DbContex
             entity.Property(x => x.Estado).HasDefaultValue("Activo");
             entity.HasIndex(x => x.Estado);
             entity.HasIndex(x => x.EtapaId);
+            entity.Property(x => x.ValorReferenciaMonto).HasColumnType("numeric(18,2)");
+            entity.Property(x => x.Moneda).HasMaxLength(3).HasDefaultValue("COP").IsRequired();
             entity.HasOne<Pais>().WithMany().HasForeignKey(x => x.PaisId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne<Region>().WithMany().HasForeignKey(x => x.RegionId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne<Ciudad>().WithMany().HasForeignKey(x => x.CiudadId).OnDelete(DeleteBehavior.Restrict);
@@ -154,6 +156,8 @@ public class NexitDbContext(DbContextOptions<NexitDbContext> options) : DbContex
             entity.Property(x => x.Nombre).HasMaxLength(255).IsRequired();
             entity.Property(x => x.Estado).HasDefaultValue("Activo"); entity.Property(x => x.CreatedAt).HasDefaultValueSql("now()"); entity.Property(x => x.UpdatedAt).HasDefaultValueSql("now()");
             entity.HasIndex(x => x.Estado);
+            entity.Property(x => x.CostoReferenciaValor).HasColumnType("numeric(18,2)");
+            entity.Property(x => x.Moneda).HasMaxLength(3).HasDefaultValue("COP").IsRequired();
             entity.HasOne<Pais>().WithMany().HasForeignKey(x => x.PaisId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne<Region>().WithMany().HasForeignKey(x => x.RegionId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne<Ciudad>().WithMany().HasForeignKey(x => x.CiudadId).OnDelete(DeleteBehavior.Restrict);
@@ -206,7 +210,9 @@ modelBuilder.Entity<ProyectoAdjunto>(entity => { entity.ToTable("proyecto_adjunt
             entity.Property(x => x.Id).HasDefaultValueSql("gen_random_uuid()");
             entity.Property(x => x.Nombre).HasMaxLength(255).IsRequired();
             entity.Property(x => x.PorcentajeAvance).HasDefaultValue(0); entity.Property(x => x.PropuestaEstado).HasDefaultValue("No enviada"); entity.Property(x => x.Pagado).HasDefaultValue(false); entity.Property(x => x.CreatedAt).HasDefaultValueSql("now()"); entity.Property(x => x.UpdatedAt).HasDefaultValueSql("now()");
-            entity.HasIndex(x => x.FechaEvento); entity.HasIndex(x => x.EstadoId); entity.HasIndex(x => x.Prioridad);
+            entity.HasIndex(x => x.FechaEvento); entity.HasIndex(x => x.EstadoId); entity.HasIndex(x => x.Prioridad); entity.HasIndex(x => x.GerenteId);
+            entity.Property(x => x.Valor).HasColumnType("numeric(18,2)");
+            entity.Property(x => x.Moneda).HasMaxLength(3).HasDefaultValue("COP").IsRequired();
             entity.HasOne<EstadoProyecto>().WithMany().HasForeignKey(x => x.EstadoId).OnDelete(DeleteBehavior.Restrict);
             entity.HasMany(x => x.Equipo).WithOne(x => x.Proyecto).HasForeignKey(x => x.ProyectoId).OnDelete(DeleteBehavior.Cascade);
             entity.HasMany(x => x.Proveedores).WithOne(x => x.Proyecto).HasForeignKey(x => x.ProyectoId).OnDelete(DeleteBehavior.Cascade);

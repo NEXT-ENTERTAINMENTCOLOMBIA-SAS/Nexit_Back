@@ -162,7 +162,7 @@ public class PrioridadProyectosTests
         var estadoActivo = new EstadoProyecto { Id = Guid.NewGuid(), Nombre = "En curso", Fase = 2 };
         var estadoFinalizado = new EstadoProyecto { Id = Guid.NewGuid(), Nombre = "Finalizado", Fase = 2 };
         catalogos.Setup(x => x.GetEstadosAsync(null, It.IsAny<CancellationToken>())).ReturnsAsync([estadoActivo, estadoFinalizado]);
-        proyectos.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(
+        proyectos.Setup(x => x.GetAllConSeguimientoAsync(It.IsAny<CancellationToken>())).ReturnsAsync(
         [
             new Proyecto { Nombre = "Activo", EstadoId = estadoActivo.Id, Prioridad = "Alta" },
             new Proyecto { Nombre = "Ya terminado", EstadoId = estadoFinalizado.Id, Prioridad = "Alta" },
@@ -181,7 +181,7 @@ public class PrioridadProyectosTests
         var catalogos = new Mock<ICatalogosRepository>();
         var estadoActivo = new EstadoProyecto { Id = Guid.NewGuid(), Nombre = "En curso", Fase = 2 };
         catalogos.Setup(x => x.GetEstadosAsync(null, It.IsAny<CancellationToken>())).ReturnsAsync([estadoActivo]);
-        proyectos.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(
+        proyectos.Setup(x => x.GetAllConSeguimientoAsync(It.IsAny<CancellationToken>())).ReturnsAsync(
         [
             new Proyecto { Nombre = "Sin señales", EstadoId = estadoActivo.Id, PropuestaEstado = "Enviada", Pagado = true },
             new Proyecto { Nombre = "Prioridad alta", EstadoId = estadoActivo.Id, Prioridad = "Alta", PropuestaEstado = "Enviada", Pagado = true },
@@ -205,7 +205,7 @@ public class PrioridadProyectosTests
         var estadoActivo = new EstadoProyecto { Id = Guid.NewGuid(), Nombre = "En curso", Fase = 2 };
         catalogos.Setup(x => x.GetEstadosAsync(null, It.IsAny<CancellationToken>())).ReturnsAsync([estadoActivo]);
         var proyectoViejo = new Proyecto { Nombre = "Viejo sin bitácora", EstadoId = estadoActivo.Id, PropuestaEstado = "Enviada", Pagado = true, CreatedAt = DateTime.UtcNow.AddDays(-30) };
-        proyectos.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync([proyectoViejo]);
+        proyectos.Setup(x => x.GetAllConSeguimientoAsync(It.IsAny<CancellationToken>())).ReturnsAsync([proyectoViejo]);
 
         var result = await new ConsultarPrioridadProyectosUseCase(proyectos.Object, catalogos.Object).ExecuteAsync();
 

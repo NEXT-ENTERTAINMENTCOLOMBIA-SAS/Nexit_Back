@@ -43,6 +43,7 @@ public static class DependencyInjection
         services.AddScoped<IConsultarSeguimientoProyectoUseCase, ConsultarSeguimientoProyectoUseCase>();
         services.AddScoped<IConsultarPrioridadProyectosUseCase, ConsultarPrioridadProyectosUseCase>();
         services.AddScoped<IProyectoAdjuntosUseCase, ProyectoAdjuntosUseCase>();
+        services.AddSingleton<ConfiguracionCache>();
         services.AddScoped<IConfiguracionService, ConfiguracionService>();
         services.AddScoped<IConsultarPanelProjectManagersUseCase, ConsultarPanelProjectManagersUseCase>();
         services.AddScoped<ICrearUsuarioUseCase, CrearUsuarioUseCase>();

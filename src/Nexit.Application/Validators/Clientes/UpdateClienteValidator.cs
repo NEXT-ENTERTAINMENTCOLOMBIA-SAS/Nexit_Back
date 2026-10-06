@@ -10,6 +10,7 @@ public class UpdateClienteValidator : AbstractValidator<UpdateClienteDto>
     {
         RuleFor(x => x.Id).NotEmpty();
         RuleFor(x => x.Nombre).NotEmpty().MaximumLength(255);
+        this.AddDineroRules(x => x.ValorReferenciaMonto, x => x.Moneda);
         RuleFor(x => x.Estado).Must(e => e is "Activo" or "Prospecto" or "Inactivo").WithMessage("Estado inválido");
         // Ver el comentario equivalente en CreateClienteValidator -- misma lista simple de correos,
         // sin "principal". Al editar, se excluye este mismo cliente de la comprobación de duplicados

@@ -13,7 +13,10 @@ public class Proveedor : BaseEntity
     public string? Web { get; set; }
     public string? Direccion { get; set; }
     public int? Aforo { get; set; }
+    /// <summary>Texto libre histórico ("desde $500k"); se conserva cuando no se pudo convertir a número. Lo nuevo va en <see cref="CostoReferenciaValor"/>.</summary>
     public string? CostoReferencia { get; set; }
+    public decimal? CostoReferenciaValor { get; set; }
+    public string Moneda { get; set; } = "COP";
     public int? Score { get; set; }
     public string? Presupuesto { get; set; }
     public string? Cobertura { get; set; }

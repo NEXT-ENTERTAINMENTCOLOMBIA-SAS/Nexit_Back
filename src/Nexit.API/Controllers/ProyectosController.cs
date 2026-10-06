@@ -14,6 +14,14 @@ public class ProyectosController(ICrearProyectoUseCase crear, IActualizarProyect
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<ProyectoResponseDto>>> GetAll(CancellationToken ct) => Ok(await consultar.ListAsync(ct));
 
+    /// <summary>
+    /// Listado paginado y filtrado en la base (2026-10-05): en vez de bajar todos los proyectos para filtrar en el
+    /// navegador, la pantalla pide una página con sus filtros y los conteos globales de las tarjetas.
+    /// </summary>
+    [HttpGet("pagina")]
+    public async Task<ActionResult<ProyectosPaginaDto>> GetPagina([FromQuery] string? q, [FromQuery] Guid? estadoId, [FromQuery] Guid? clienteId, [FromQuery] string? tipo, [FromQuery] Guid? gerenteId, [FromQuery] string? alerta, [FromQuery] int page = 1, [FromQuery] int pageSize = 12, CancellationToken ct = default)
+        => Ok(await consultar.PaginaAsync(new Nexit.Core.Interfaces.FiltroProyectos(q, estadoId, clienteId, tipo, gerenteId, page, pageSize, alerta), ct));
+
     // Antes de "{id:guid}" a propósito -- si no, ASP.NET Core intenta parsear "prioridad"/"exportar" como Guid y falla con 404.
     /// <summary>"A qué proyecto atender primero" (docs/21, docs/22) -- puntuado y ordenado, con las razones de cada puntaje.</summary>
     [HttpGet("prioridad")]

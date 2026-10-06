@@ -25,6 +25,9 @@ public class CrearProyectoDto
     public bool Pagado { get; set; }
     public DateTime? FechaPago { get; set; }
     public string? Notas { get; set; }
+    /// <summary>Valor del proyecto (numérico) y su moneda (COP/MXN/USD/EUR).</summary>
+    public decimal? Valor { get; set; }
+    public string Moneda { get; set; } = "COP";
     /// <summary>
     /// El gerente responsable/dueño del proyecto. Solo un administrador o super administrador puede
     /// asignarlo o cambiarlo explícitamente por este campo — si quien crea/edita el proyecto es un
@@ -45,6 +48,26 @@ public class ProyectoResponseDto : CrearProyectoDto
     public Guid Id { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
+}
+
+/// <summary>Una página del listado de proyectos + los conteos globales de las tarjetas de arriba.</summary>
+public class ProyectosPaginaDto
+{
+    public List<ProyectoResponseDto> Items { get; set; } = [];
+    public int Total { get; set; }
+    public int Pagina { get; set; }
+    public int TamanoPagina { get; set; }
+    public ProyectosResumenDto Resumen { get; set; } = new();
+}
+
+public class ProyectosResumenDto
+{
+    public int Total { get; set; }
+    public int EnCurso { get; set; }
+    public int Proximos30Dias { get; set; }
+    public int SinProveedor { get; set; }
+    public int SinGerente { get; set; }
+    public int Proximos7Dias { get; set; }
 }
 
 /// <summary>Un proyecto puntuado por <c>ConsultarPrioridadProyectosUseCase</c> (docs/21, docs/22) -- el puntaje siempre viene acompañado de sus razones, nunca solo.</summary>

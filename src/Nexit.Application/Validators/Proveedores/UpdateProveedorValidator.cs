@@ -10,6 +10,7 @@ public class UpdateProveedorValidator : AbstractValidator<UpdateProveedorDto>
     {
         RuleFor(x => x.Id).NotEmpty();
         RuleFor(x => x.Nombre).NotEmpty().MaximumLength(255);
+        this.AddDineroRules(x => x.CostoReferenciaValor, x => x.Moneda);
         RuleFor(x => x.PaisId).NotEmpty();
         RuleFor(x => x.CategoriaId).NotEmpty();
         // Lista simple de correos, sin "principal" (2026-09-06) -- ver el comentario detallado en

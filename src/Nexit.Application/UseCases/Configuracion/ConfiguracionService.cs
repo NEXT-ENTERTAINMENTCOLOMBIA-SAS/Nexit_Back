@@ -28,7 +28,25 @@ public interface IConfiguracionService
 /// <see cref="Catalogos.CatalogosService"/>; esto agrega lo que faltaba: nombres de roles, las listas
 /// de Proyectos y los dominios de correo permitidos.
 /// </summary>
-public class ConfiguracionService(IConfiguracionRepository repository, IUnitOfWork unitOfWork) : IConfiguracionService
+/// <summary>
+/// Caché en memoria de roles y listas de Configuración (2026-10-05): se leen en casi cada pantalla y casi nunca
+/// cambian. Dura 60 s como tope y se invalida al instante cuando alguien edita (en esta instancia).
+/// </summary>
+public class ConfiguracionCache
+{
+    private static readonly TimeSpan Vida = TimeSpan.FromSeconds(60);
+    private readonly object _lock = new();
+    private (DateTime Hasta, IReadOnlyList<RolConfigDto> Valor)? _roles;
+    private (DateTime Hasta, IReadOnlyDictionary<string, List<OpcionConfigDto>> Valor)? _opciones;
+
+    public IReadOnlyList<RolConfigDto>? Roles { get { lock (_lock) return _roles is { } r && r.Hasta > DateTime.UtcNow ? r.Valor : null; } }
+    public IReadOnlyDictionary<string, List<OpcionConfigDto>>? Opciones { get { lock (_lock) return _opciones is { } o && o.Hasta > DateTime.UtcNow ? o.Valor : null; } }
+    public void GuardarRoles(IReadOnlyList<RolConfigDto> v) { lock (_lock) _roles = (DateTime.UtcNow + Vida, v); }
+    public void GuardarOpciones(IReadOnlyDictionary<string, List<OpcionConfigDto>> v) { lock (_lock) _opciones = (DateTime.UtcNow + Vida, v); }
+    public void Invalidar() { lock (_lock) { _roles = null; _opciones = null; } }
+}
+
+public class ConfiguracionService(IConfiguracionRepository repository, IUnitOfWork unitOfWork, ConfiguracionCache cache) : IConfiguracionService
 {
     private static readonly Regex DominioValido = new(@"^(?=.{3,253}$)([a-z0-9]([a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}$", RegexOptions.Compiled);
 
@@ -42,6 +60,14 @@ public class ConfiguracionService(IConfiguracionRepository repository, IUnitOfWo
     };
 
     public async Task<IReadOnlyList<RolConfigDto>> GetRolesAsync(CancellationToken ct = default)
+    {
+        if (cache.Roles is { } enCache) return enCache;
+        var roles = await LeerRolesAsync(ct);
+        cache.GuardarRoles(roles);
+        return roles;
+    }
+
+    private async Task<IReadOnlyList<RolConfigDto>> LeerRolesAsync(CancellationToken ct)
     {
         var guardados = (await repository.GetRolesAsync(ct)).ToDictionary(x => x.Rol);
         return Roles.Todos.Select(rol =>
@@ -62,7 +88,7 @@ public class ConfiguracionService(IConfiguracionRepository repository, IUnitOfWo
         if (etiqueta.Length > 60) throw new BusinessRuleException("El nombre del rol no puede superar 60 caracteres.");
         if (descripcion.Length > 255) throw new BusinessRuleException("La descripción no puede superar 255 caracteres.");
 
-        var otros = (await GetRolesAsync(ct)).Where(r => r.Rol != rol);
+        var otros = (await LeerRolesAsync(ct)).Where(r => r.Rol != rol);
         if (otros.Any(r => string.Equals(r.Etiqueta, etiqueta, StringComparison.OrdinalIgnoreCase)))
             throw new BusinessRuleException("Ya hay otro rol con ese nombre.");
 
@@ -74,15 +100,19 @@ public class ConfiguracionService(IConfiguracionRepository repository, IUnitOfWo
             existente.Etiqueta = etiqueta; existente.Descripcion = descripcion; existente.UpdatedAt = DateTime.UtcNow;
         }
         await unitOfWork.SaveChangesAsync(ct);
+        cache.Invalidar();
         return new RolConfigDto { Rol = rol, Etiqueta = etiqueta, Descripcion = descripcion };
     }
 
     public async Task<IReadOnlyDictionary<string, List<OpcionConfigDto>>> GetOpcionesAsync(CancellationToken ct = default)
     {
+        if (cache.Opciones is { } enCache) return enCache;
         var todas = await repository.GetOpcionesAsync(ct);
-        return ListasConfigurables.Todas.ToDictionary(
+        var resultado = ListasConfigurables.Todas.ToDictionary(
             lista => lista,
             lista => todas.Where(o => o.Lista == lista).OrderBy(o => o.Orden).ThenBy(o => o.Valor, StringComparer.OrdinalIgnoreCase).Select(Mapear).ToList());
+        cache.GuardarOpciones(resultado);
+        return resultado;
     }
 
     public async Task<OpcionConfigDto> CrearOpcionAsync(string lista, GuardarOpcionDto dto, CancellationToken ct = default)
@@ -93,6 +123,7 @@ public class ConfiguracionService(IConfiguracionRepository repository, IUnitOfWo
         var opcion = new OpcionConfig { Lista = lista, Valor = valor, Orden = await repository.SiguienteOrdenAsync(lista, ct) };
         await repository.AddOpcionAsync(opcion, ct);
         await unitOfWork.SaveChangesAsync(ct);
+        cache.Invalidar();
         return Mapear(opcion);
     }
 
@@ -106,6 +137,7 @@ public class ConfiguracionService(IConfiguracionRepository repository, IUnitOfWo
             throw new BusinessRuleException($"“{opcion.Valor}” no se puede renombrar: el sistema lo usa para calcular la prioridad de los proyectos. Puedes agregar otras opciones.");
         if (await repository.OpcionExisteAsync(lista, valor, id, ct)) throw new BusinessRuleException("Esa opción ya existe en la lista.");
         await repository.RenombrarOpcionAsync(opcion, valor, ct);
+        cache.Invalidar();
         return Mapear(opcion);
     }
 
@@ -117,6 +149,7 @@ public class ConfiguracionService(IConfiguracionRepository repository, IUnitOfWo
             throw new BusinessRuleException($"“{opcion.Valor}” no se puede eliminar: el sistema lo usa para calcular la prioridad de los proyectos.");
         repository.RemoveOpcion(opcion);
         await unitOfWork.SaveChangesAsync(ct);
+        cache.Invalidar();
     }
 
     public async Task<IReadOnlyList<DominioCorreoDto>> GetDominiosAsync(CancellationToken ct = default) =>

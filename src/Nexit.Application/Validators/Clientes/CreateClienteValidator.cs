@@ -9,6 +9,7 @@ public class CreateClienteValidator : AbstractValidator<CreateClienteDto>
     public CreateClienteValidator(IClienteRepository repository)
     {
         RuleFor(x => x.Nombre).NotEmpty().MaximumLength(255);
+        this.AddDineroRules(x => x.ValorReferenciaMonto, x => x.Moneda);
         RuleFor(x => x.Estado).Must(e => e is "Activo" or "Prospecto" or "Inactivo").WithMessage("Estado inválido");
         // Lista simple de correos, sin "principal" (2026-09-06) -- un cliente puede tener más de uno.
         // Cada elemento se valida como si fuera el único: formato de correo (ChildRules, no necesita

@@ -59,7 +59,7 @@ public class ClientesImportExporter(
             hoja.Cell(fila, 6).Value = c.Contacto ?? "";
             hoja.Cell(fila, 7).Value = c.CargoContacto ?? "";
             hoja.Cell(fila, 8).Value = c.Emails.Count > 0 ? c.Emails[0].Email : "";
-            hoja.Cell(fila, 9).Value = c.ValorReferencia ?? "";
+            hoja.Cell(fila, 9).Value = TextoDinero(c.ValorReferenciaMonto, c.Moneda, c.ValorReferencia);
             hoja.Cell(fila, 10).Value = c.Telefonos.Count > 0 ? c.Telefonos[0].Telefono : "";
             hoja.Cell(fila, 11).Value = c.Notas ?? "";
             // País se exporta como texto (no Id) -- ver comentario de ProveedoresImportExporter.
@@ -106,6 +106,8 @@ public class ClientesImportExporter(
             var contacto = TextoOpcional(celdas.Cell(6));
             var cargoContacto = TextoOpcional(celdas.Cell(7));
             var valorReferencia = TextoOpcional(celdas.Cell(9));
+            decimal? valorReferenciaNum = null; var valorReferenciaMoneda = (string?)null;
+            if (valorReferencia is not null && Nexit.Core.Utils.DineroParser.TryParse(valorReferencia, out var _m, out var _mon)) { valorReferenciaNum = _m; valorReferenciaMoneda = _mon; }
             var notas = TextoOpcional(celdas.Cell(11));
             var estado = TextoOpcional(celdas.Cell(13));
 
@@ -126,6 +128,8 @@ public class ClientesImportExporter(
                     Contacto = contacto,
                     CargoContacto = cargoContacto,
                     ValorReferencia = valorReferencia,
+                    ValorReferenciaMonto = valorReferenciaNum,
+                    Moneda = valorReferenciaMoneda ?? Nexit.Core.Constants.Monedas.Cop,
                     Notas = notas,
                     Estado = estado ?? "Activo",
                     Telefonos = string.IsNullOrWhiteSpace(telefono) ? [] : [new ClienteTelefonoDto { Telefono = telefono }],
@@ -184,6 +188,8 @@ public class ClientesImportExporter(
                     Contacto = contacto ?? existente.Contacto,
                     CargoContacto = cargoContacto ?? existente.CargoContacto,
                     ValorReferencia = valorReferencia ?? existente.ValorReferencia,
+                    ValorReferenciaMonto = valorReferenciaNum ?? existente.ValorReferenciaMonto,
+                    Moneda = valorReferenciaMoneda ?? existente.Moneda,
                     Notas = notas ?? existente.Notas,
                     Estado = estado ?? existente.Estado,
                     Telefonos = MergeTelefonos(existente.Telefonos, telefono),
@@ -236,4 +242,11 @@ public class ClientesImportExporter(
 
     private static string Texto(IXLCell celda) => celda.GetString().Trim();
     private static string? TextoOpcional(IXLCell celda) { var texto = Texto(celda); return string.IsNullOrWhiteSpace(texto) ? null : texto; }
+
+    private static string TextoDinero(decimal? valor, string moneda, string? textoLegado)
+    {
+        if (!valor.HasValue) return textoLegado ?? "";
+        var n = valor.Value.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+        return moneda == Nexit.Core.Constants.Monedas.Cop ? n : $"{moneda} {n}";
+    }
 }

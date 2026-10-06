@@ -91,21 +91,21 @@ internal static class ClienteMapper
     {
         Nombre = input.Nombre, Sector = input.Sector, PaisId = input.PaisId, RegionId = input.RegionId, CiudadId = input.CiudadId,
         Estado = input.Estado, EtapaId = input.EtapaId, Ciudad = input.Ciudad, Direccion = input.Direccion, Web = input.Web,
-        Contacto = input.Contacto, CargoContacto = input.CargoContacto, ValorReferencia = input.ValorReferencia, Notas = input.Notas
+        Contacto = input.Contacto, CargoContacto = input.CargoContacto, ValorReferencia = input.ValorReferencia, ValorReferenciaMonto = input.ValorReferenciaMonto, Moneda = input.Moneda, Notas = input.Notas
     };
     public static void Apply(CreateClienteDto input, Cliente cliente)
     {
         cliente.Nombre = input.Nombre; cliente.Sector = input.Sector; cliente.PaisId = input.PaisId; cliente.RegionId = input.RegionId;
         cliente.CiudadId = input.CiudadId; cliente.Estado = input.Estado; cliente.EtapaId = input.EtapaId; cliente.Ciudad = input.Ciudad; cliente.Direccion = input.Direccion;
         cliente.Web = input.Web; cliente.Contacto = input.Contacto; cliente.CargoContacto = input.CargoContacto;
-        cliente.ValorReferencia = input.ValorReferencia; cliente.Notas = input.Notas;
+        cliente.ValorReferencia = input.ValorReferencia; cliente.ValorReferenciaMonto = input.ValorReferenciaMonto; cliente.Moneda = input.Moneda; cliente.Notas = input.Notas;
     }
     public static ClienteResponseDto ToResponse(Cliente cliente) => new()
     {
         Id = cliente.Id, Nombre = cliente.Nombre, Sector = cliente.Sector, PaisId = cliente.PaisId, RegionId = cliente.RegionId,
         CiudadId = cliente.CiudadId, Estado = cliente.Estado, EtapaId = cliente.EtapaId, Ciudad = cliente.Ciudad, Direccion = cliente.Direccion,
         Web = cliente.Web, Contacto = cliente.Contacto, CargoContacto = cliente.CargoContacto,
-        ValorReferencia = cliente.ValorReferencia, Notas = cliente.Notas, CreatedAt = cliente.CreatedAt, UpdatedAt = cliente.UpdatedAt,
+        ValorReferencia = cliente.ValorReferencia, ValorReferenciaMonto = cliente.ValorReferenciaMonto, Moneda = cliente.Moneda, Notas = cliente.Notas, CreatedAt = cliente.CreatedAt, UpdatedAt = cliente.UpdatedAt,
         Telefonos = cliente.Telefonos.Select(phone => new ClienteTelefonoDto { Id = phone.Id, Telefono = phone.Telefono, Etiqueta = phone.Etiqueta }).ToList(),
         Emails = cliente.Emails.Select(mail => new ClienteEmailDto { Id = mail.Id, Email = mail.Email, Etiqueta = mail.Etiqueta }).ToList()
     };

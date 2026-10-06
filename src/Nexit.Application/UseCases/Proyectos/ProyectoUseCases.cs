@@ -48,6 +48,17 @@ public class ActualizarProyectoUseCase(IProyectoRepository repository, IClienteR
 public class ConsultarProyectosUseCase(IProyectoRepository repository) : IConsultarProyectosUseCase
 {
     public async Task<IReadOnlyList<ProyectoResponseDto>> ListAsync(CancellationToken ct = default) => (await repository.GetAllAsync(ct)).Select(ProyectoMapper.ToResponse).ToList();
+    public async Task<ProyectosPaginaDto> PaginaAsync(FiltroProyectos filtro, CancellationToken ct = default)
+    {
+        var (items, total) = await repository.BuscarPaginaAsync(filtro, ct);
+        var r = await repository.ResumenAsync(DateTime.UtcNow, ct);
+        return new ProyectosPaginaDto
+        {
+            Items = items.Select(ProyectoMapper.ToResponse).ToList(), Total = total,
+            Pagina = Math.Max(1, filtro.Pagina), TamanoPagina = Math.Clamp(filtro.TamanoPagina, 1, 200),
+            Resumen = new ProyectosResumenDto { Total = r.Total, EnCurso = r.EnCurso, Proximos30Dias = r.Proximos30Dias, SinProveedor = r.SinProveedor, SinGerente = r.SinGerente, Proximos7Dias = r.Proximos7Dias },
+        };
+    }
     public async Task<ProyectoResponseDto> GetByIdAsync(Guid id, CancellationToken ct = default) => ProyectoMapper.ToResponse(await repository.GetByIdAsync(id, ct) ?? throw new EntityNotFoundException("Proyecto", id));
 }
 
@@ -67,7 +78,7 @@ public class ConsultarPrioridadProyectosUseCase(IProyectoRepository repository, 
         var idsTerminales = estados.Where(e => EstadosProyectoTerminales.Nombres.Contains(e.Nombre)).Select(e => e.Id).ToHashSet();
 
         var ahora = DateTime.UtcNow;
-        return (await repository.GetAllAsync(ct))
+        return (await repository.GetAllConSeguimientoAsync(ct))
             .Where(p => !idsTerminales.Contains(p.EstadoId))
             .Select(p =>
             {
@@ -125,7 +136,7 @@ internal static class ProyectoMapper
     public static Proyecto ToEntity(CrearProyectoDto dto) { var entity = new Proyecto(); Apply(dto, entity); return entity; }
     public static void Apply(CrearProyectoDto dto, Proyecto entity)
     {
-        entity.Nombre = dto.Nombre; entity.ClienteId = dto.ClienteId; entity.ContactoProyecto = dto.ContactoProyecto; entity.TipoProyecto = dto.TipoProyecto; entity.Prioridad = dto.Prioridad; entity.Ciudad = dto.Ciudad; entity.SedeNext = dto.SedeNext; entity.FechaSolicitud = dto.FechaSolicitud; entity.FechaEvento = dto.FechaEvento; entity.EstadoId = dto.EstadoId; entity.PorcentajeAvance = dto.PorcentajeAvance; entity.PropuestaEstado = dto.PropuestaEstado; entity.NumeroFactura = dto.NumeroFactura; entity.Pagado = dto.Pagado; entity.FechaPago = dto.FechaPago; entity.Notas = dto.Notas; entity.GerenteId = dto.GerenteId;
+        entity.Nombre = dto.Nombre; entity.ClienteId = dto.ClienteId; entity.ContactoProyecto = dto.ContactoProyecto; entity.TipoProyecto = dto.TipoProyecto; entity.Prioridad = dto.Prioridad; entity.Ciudad = dto.Ciudad; entity.SedeNext = dto.SedeNext; entity.FechaSolicitud = dto.FechaSolicitud; entity.FechaEvento = dto.FechaEvento; entity.EstadoId = dto.EstadoId; entity.PorcentajeAvance = dto.PorcentajeAvance; entity.PropuestaEstado = dto.PropuestaEstado; entity.NumeroFactura = dto.NumeroFactura; entity.Pagado = dto.Pagado; entity.FechaPago = dto.FechaPago; entity.Notas = dto.Notas; entity.Valor = dto.Valor; entity.Moneda = dto.Moneda; entity.GerenteId = dto.GerenteId;
         // Guid.Empty (no Guid.NewGuid()) para los miembros de equipo nuevos -- ver el comentario detallado
         // en ActualizarClienteUseCase (ClienteUseCases.cs) sobre por qué un Id ya asignado hace que EF Core
         // confunda un ProyectoEquipo nuevo con uno existente cuando el proyecto padre ya está rastreado.
@@ -134,7 +145,7 @@ internal static class ProyectoMapper
     }
     public static ProyectoResponseDto ToResponse(Proyecto entity) => new()
     {
-        Id = entity.Id, Nombre = entity.Nombre, ClienteId = entity.ClienteId, ContactoProyecto = entity.ContactoProyecto, TipoProyecto = entity.TipoProyecto, Prioridad = entity.Prioridad, Ciudad = entity.Ciudad, SedeNext = entity.SedeNext, FechaSolicitud = entity.FechaSolicitud, FechaEvento = entity.FechaEvento, EstadoId = entity.EstadoId, PorcentajeAvance = entity.PorcentajeAvance, PropuestaEstado = entity.PropuestaEstado, NumeroFactura = entity.NumeroFactura, Pagado = entity.Pagado, FechaPago = entity.FechaPago, Notas = entity.Notas, GerenteId = entity.GerenteId, CreatedAt = entity.CreatedAt, UpdatedAt = entity.UpdatedAt,
+        Id = entity.Id, Nombre = entity.Nombre, ClienteId = entity.ClienteId, ContactoProyecto = entity.ContactoProyecto, TipoProyecto = entity.TipoProyecto, Prioridad = entity.Prioridad, Ciudad = entity.Ciudad, SedeNext = entity.SedeNext, FechaSolicitud = entity.FechaSolicitud, FechaEvento = entity.FechaEvento, EstadoId = entity.EstadoId, PorcentajeAvance = entity.PorcentajeAvance, PropuestaEstado = entity.PropuestaEstado, NumeroFactura = entity.NumeroFactura, Pagado = entity.Pagado, FechaPago = entity.FechaPago, Notas = entity.Notas, Valor = entity.Valor, Moneda = entity.Moneda, GerenteId = entity.GerenteId, CreatedAt = entity.CreatedAt, UpdatedAt = entity.UpdatedAt,
         Equipo = entity.Equipo.Select(x => new ProyectoEquipoDto { Id = x.Id, Rol = x.Rol, Nombre = x.Nombre }).ToList(), ProveedorIds = entity.Proveedores.Select(x => x.ProveedorId).ToList()
     };
     public static SeguimientoProyectoDto ToResponse(ProyectoSeguimiento entity) => new() { Id = entity.Id, AutorId = entity.AutorId, Area = entity.Area, Fecha = entity.Fecha, Nota = entity.Nota, CreatedAt = entity.CreatedAt };

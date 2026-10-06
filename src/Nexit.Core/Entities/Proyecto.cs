@@ -18,6 +18,9 @@ public class Proyecto : BaseEntity
     public bool Pagado { get; set; }
     public DateTime? FechaPago { get; set; }
     public string? Notas { get; set; }
+    /// <summary>Valor económico del proyecto (monto numérico, junto a <see cref="Moneda"/>). Opcional.</summary>
+    public decimal? Valor { get; set; }
+    public string Moneda { get; set; } = "COP";
     /// <summary>
     /// El gerente (manager) responsable/dueño de este proyecto. Solo esta persona puede tomar
     /// decisiones directas sobre el proyecto (incluido endosar una solicitud de eliminación de

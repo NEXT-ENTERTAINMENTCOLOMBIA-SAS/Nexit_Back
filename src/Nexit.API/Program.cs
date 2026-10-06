@@ -6,6 +6,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.RateLimiting;
 using Nexit.API.Filters;
+using Nexit.API.Health;
+using Microsoft.AspNetCore.ResponseCompression;
 using Nexit.API.Middleware;
 using Nexit.Application;
 using Nexit.Infrastructure;
@@ -17,6 +19,15 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
     builder.Host.UseSerilog();
+    // Monitoreo de errores (2026-10-05): solo se activa si existe Sentry__Dsn en las variables de entorno;
+    // sin él, el SDK queda apagado y la app funciona igual. No se envían datos personales (IP, usuario).
+    builder.WebHost.UseSentry(o =>
+    {
+        o.Dsn = builder.Configuration["Sentry:Dsn"] ?? string.Empty;
+        o.Environment = builder.Configuration["Sentry:Environment"] ?? builder.Environment.EnvironmentName;
+        o.SendDefaultPii = false;
+        o.TracesSampleRate = 0.0;
+    });
     builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = 10 * 1024 * 1024);
     builder.Services.AddApplication();
     builder.Services.AddInfrastructure(builder.Configuration);
@@ -125,6 +136,13 @@ try
     });
     // Filtro global: nadie sin perfil de negocio (o con la cuenta desactivada) pasa de acá, salvo
     // los endpoints marcados con [PermitirSinPerfil] -- ver Filters/PerfilRequeridoFilter.cs.
+    // Compresión de respuestas (Brotli/Gzip): los listados JSON son grandes y repetitivos, bajan ~80-90 %.
+    builder.Services.AddResponseCompression(o =>
+    {
+        o.EnableForHttps = true;
+        o.Providers.Add<BrotliCompressionProvider>();
+        o.Providers.Add<GzipCompressionProvider>();
+    });
     builder.Services.AddControllers(options => options.Filters.Add<PerfilRequeridoFilter>());
     builder.Services.AddSwaggerGen(options =>
     {
@@ -134,6 +152,7 @@ try
     });
     var app = builder.Build();
     app.UseForwardedHeaders(forwardedHeadersOptions);
+    app.UseResponseCompression();
     app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
     app.UseMiddleware<SecurityHeadersMiddleware>();
     if (!app.Environment.IsDevelopment())
@@ -152,6 +171,7 @@ try
     app.UseAuthentication();
     app.UseRateLimiter();
     app.UseAuthorization();
+    app.MapNexitHealth();
     app.MapControllers().RequireRateLimiting("api");
     app.Run();
 }

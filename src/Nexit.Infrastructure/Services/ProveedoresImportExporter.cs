@@ -60,7 +60,7 @@ public class ProveedoresImportExporter(
             hoja.Cell(fila, 9).Value = p.Web ?? "";
             hoja.Cell(fila, 10).Value = p.Direccion ?? "";
             if (p.Aforo.HasValue) hoja.Cell(fila, 11).Value = p.Aforo.Value;
-            hoja.Cell(fila, 12).Value = p.CostoReferencia ?? "";
+            hoja.Cell(fila, 12).Value = TextoDinero(p.CostoReferenciaValor, p.Moneda, p.CostoReferencia);
             if (p.Score.HasValue) hoja.Cell(fila, 13).Value = p.Score.Value;
             hoja.Cell(fila, 14).Value = p.Presupuesto ?? "";
             hoja.Cell(fila, 15).Value = p.Cobertura ?? "";
@@ -131,6 +131,8 @@ public class ProveedoresImportExporter(
             var direccion = TextoOpcional(celdas.Cell(10));
             var aforo = NumeroEnteroOpcional(celdas.Cell(11));
             var costoReferencia = TextoOpcional(celdas.Cell(12));
+            decimal? costoReferenciaNum = null; var costoReferenciaMoneda = (string?)null;
+            if (costoReferencia is not null && Nexit.Core.Utils.DineroParser.TryParse(costoReferencia, out var _m, out var _mon)) { costoReferenciaNum = _m; costoReferenciaMoneda = _mon; }
             var score = NumeroEnteroOpcional(celdas.Cell(13));
             var presupuesto = TextoOpcional(celdas.Cell(14));
             var cobertura = TextoOpcional(celdas.Cell(15));
@@ -156,6 +158,8 @@ public class ProveedoresImportExporter(
                     Direccion = direccion,
                     Aforo = aforo,
                     CostoReferencia = costoReferencia,
+                    CostoReferenciaValor = costoReferenciaNum,
+                    Moneda = costoReferenciaMoneda ?? Nexit.Core.Constants.Monedas.Cop,
                     Score = score,
                     Presupuesto = presupuesto,
                     Cobertura = cobertura,
@@ -212,6 +216,8 @@ public class ProveedoresImportExporter(
                     Direccion = direccion ?? existente.Direccion,
                     Aforo = aforo ?? existente.Aforo,
                     CostoReferencia = costoReferencia ?? existente.CostoReferencia,
+                    CostoReferenciaValor = costoReferenciaNum ?? existente.CostoReferenciaValor,
+                    Moneda = costoReferenciaMoneda ?? existente.Moneda,
                     Score = score ?? existente.Score,
                     Presupuesto = presupuesto ?? existente.Presupuesto,
                     Cobertura = cobertura ?? existente.Cobertura,
@@ -265,4 +271,11 @@ public class ProveedoresImportExporter(
     private static string Texto(IXLCell celda) => celda.GetString().Trim();
     private static string? TextoOpcional(IXLCell celda) { var texto = Texto(celda); return string.IsNullOrWhiteSpace(texto) ? null : texto; }
     private static int? NumeroEnteroOpcional(IXLCell celda) => celda.TryGetValue(out int numero) ? numero : null;
+
+    private static string TextoDinero(decimal? valor, string moneda, string? textoLegado)
+    {
+        if (!valor.HasValue) return textoLegado ?? "";
+        var n = valor.Value.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+        return moneda == Nexit.Core.Constants.Monedas.Cop ? n : $"{moneda} {n}";
+    }
 }

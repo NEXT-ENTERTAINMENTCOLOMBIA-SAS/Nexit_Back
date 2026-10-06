@@ -16,6 +16,8 @@ public class CreateClienteDto
     public string? Contacto { get; set; }
     public string? CargoContacto { get; set; }
     public string? ValorReferencia { get; set; }
+    public decimal? ValorReferenciaMonto { get; set; }
+    public string Moneda { get; set; } = "COP";
     public string? Notas { get; set; }
     public List<ClienteTelefonoDto> Telefonos { get; set; } = [];
     public List<ClienteEmailDto> Emails { get; set; } = [];

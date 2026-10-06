@@ -24,6 +24,8 @@ public class GlobalExceptionHandlerMiddleware(RequestDelegate next, ILogger<Glob
                 DbUpdateException => (StatusCodes.Status409Conflict, "La operación no pudo completarse por una restricción de datos."),
                 _ => (StatusCodes.Status500InternalServerError, "Ocurrió un error interno.")
             };
+            // Solo los errores inesperados (500) se reportan a Sentry; los 404/409 son parte del flujo normal. Sin DSN configurado esto no hace nada.
+            if (statusCode == StatusCodes.Status500InternalServerError) SentrySdk.CaptureException(exception);
             context.Response.StatusCode = statusCode;
             context.Response.ContentType = "application/json";
             await context.Response.WriteAsJsonAsync(new ErrorResponse { StatusCode = statusCode, Message = message, TraceId = context.TraceIdentifier });
