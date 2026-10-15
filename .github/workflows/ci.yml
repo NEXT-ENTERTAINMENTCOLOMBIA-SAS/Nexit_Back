@@ -32,7 +32,7 @@ jobs:
       # como llave de caché (razonable sin lock file exacto: cambia cuando
       # cambian las versiones de paquetes referenciadas).
       - name: Cachear paquetes NuGet
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.nuget/packages
           key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
