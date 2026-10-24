@@ -10,6 +10,13 @@ public class GlobalExceptionHandlerMiddleware(RequestDelegate next, ILogger<Glob
     public async Task InvokeAsync(HttpContext context)
     {
         try { await next(context); }
+        // La persona cerró la pestaña o canceló la petición a mitad de camino: no es un error del
+        // servidor. Antes se registraba como error, se mandaba a Sentry y se intentaba responder 500
+        // a una conexión que ya no existe, ensuciando el monitoreo.
+        catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
+        {
+            logger.LogDebug("Petición cancelada por el cliente: {Path}", context.Request.Path);
+        }
         catch (Exception exception)
         {
             logger.LogError(exception, "Unhandled exception for {Path}", context.Request.Path);

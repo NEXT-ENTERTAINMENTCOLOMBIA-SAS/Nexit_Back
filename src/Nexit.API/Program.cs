@@ -175,7 +175,17 @@ try
     app.MapControllers().RequireRateLimiting("api");
     app.Run();
 }
-catch (Exception ex) { Log.Fatal(ex, "Nexit API terminated unexpectedly"); }
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Nexit API terminated unexpectedly");
+    // Sin esto el proceso terminaba con código 0 tras un fallo de arranque (por ejemplo, base de datos
+    // inalcanzable o configuración inválida): Railway/Docker lo tomaban como una salida "normal" y no
+    // lo marcaban como fallido ni lo reiniciaban según la política de reinicio por error.
+    // Se excluyen las excepciones con las que WebApplicationFactory (pruebas) y `dotnet ef` detienen el
+    // host a propósito antes de Run(): esas no son un fallo y no deben volver rojo el proceso.
+    if (ex.GetType().Name is not ("HostAbortedException" or "StopTheHostException"))
+        System.Environment.ExitCode = 1;
+}
 finally { Log.CloseAndFlush(); }
 
 // Clase parcial pública requerida por WebApplicationFactory<Program> en las pruebas de integración

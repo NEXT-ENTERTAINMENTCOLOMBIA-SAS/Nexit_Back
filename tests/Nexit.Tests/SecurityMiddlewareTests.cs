@@ -57,4 +57,33 @@ public class SecurityMiddlewareTests
         Assert.DoesNotContain("secret internal detail", body);
         Assert.Contains("Ocurrió un error interno", body);
     }
+
+    [Fact]
+    public async Task GlobalExceptionHandler_ignores_requests_cancelled_by_the_client()
+    {
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+        var context = new DefaultHttpContext { RequestAborted = cts.Token };
+        context.Response.Body = new MemoryStream();
+        var logger = Mock.Of<ILogger<GlobalExceptionHandlerMiddleware>>();
+        var middleware = new GlobalExceptionHandlerMiddleware(_ => throw new OperationCanceledException(cts.Token), logger);
+
+        await middleware.InvokeAsync(context);
+
+        Assert.Equal(StatusCodes.Status200OK, context.Response.StatusCode);
+        Assert.Equal(0, context.Response.Body.Length);
+    }
+
+    [Fact]
+    public async Task GlobalExceptionHandler_still_returns_500_for_cancellation_not_caused_by_the_client()
+    {
+        var context = new DefaultHttpContext();
+        context.Response.Body = new MemoryStream();
+        var logger = Mock.Of<ILogger<GlobalExceptionHandlerMiddleware>>();
+        var middleware = new GlobalExceptionHandlerMiddleware(_ => throw new OperationCanceledException(), logger);
+
+        await middleware.InvokeAsync(context);
+
+        Assert.Equal(StatusCodes.Status500InternalServerError, context.Response.StatusCode);
+    }
 }

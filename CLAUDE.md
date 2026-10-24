@@ -1,1 +1,3 @@
 @AGENTS.md
+@docs/CONTEXTO-PROYECTO.md
+@docs/ESTADO-ACTUAL.md

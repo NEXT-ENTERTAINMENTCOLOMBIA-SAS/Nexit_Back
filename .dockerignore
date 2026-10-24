@@ -9,3 +9,8 @@ appsettings.Development.json
 appsettings.Production.json
 .env
 .env.local
+**/logs/
+*.log
+.vs/
+.vscode/
+TestResults/

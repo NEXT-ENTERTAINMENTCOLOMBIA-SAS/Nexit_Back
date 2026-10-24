@@ -81,3 +81,11 @@ demasiado bajo para automatizar una enumeración seria.
 comparando los nombres de prueba fallidos uno por uno contra ese patrón conocido, no solo por el
 conteo. Las 74 pruebas de `Security`/`Auth` (incluida la actualizada
 `Ningun_controlador_ni_accion_tiene_AllowAnonymous`) pasan en su totalidad.
+
+## Actualizacion 2026-10-23: la marca tambien vive en Supabase
+
+`contrasena_configurada` solo se puede poner cuando ya existe la fila en `usuarios`. Quien creaba su
+contrasena en `/login` antes de registrarse quedaba sin marca y `/registro` se la volvia a pedir. Nexit_Front
+ahora guarda ademas `user_metadata.password_set = true` en Supabase en el mismo `updateUser` que crea la
+contrasena, y la usa para no pedirla dos veces; cuando el perfil ya existe vuelve a llamar a
+`POST /api/auth/confirmar-contrasena`. El backend no cambio. Detalle en `Nexit_Front/docs/ESTADO-ACTUAL.md`.
